@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-slate-navy: #2C3E50;
+    --color-gold-accent: #D4AF37;
+    --color-alabaster: #FAF9F6;
+    --color-dark-carbon: #1C1C1C;
+    --color-subtle-gray: #F1F3F5;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+    background-color: #FAF9F6;
+    color: #1C1C1C;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: "Noto Serif SC", "Playfair Display", "Songti SC", "STSong", "Source Han Serif SC", SimSun, Georgia, serif;
+  }
+
+  .font-cinzel {
+    font-family: "Cinzel", "Noto Serif SC", serif;
+  }
+}
+
+/* Custom Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Senior Care Mode (关怀模式) 1.2x Scaling, High-Contrast Buttons & Clean Visuals */
+.care-mode {
+  font-size: 1.2rem !important;
+  line-height: 1.75 !important;
+  letter-spacing: 0.015em;
+}
+
+.care-mode button,
+.care-mode .btn,
+.care-mode a {
+  font-weight: 700 !important;
+}
+
+.care-mode .care-high-contrast-btn {
+  background-color: #1a252f !important;
+  color: #ffffff !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.care-mode .care-high-contrast-gold-btn {
+  background-color: #d4af37 !important;
+  color: #111827 !important;
+  border: 2px solid #85660d !important;
+  font-weight: 800 !important;
+}
+
+

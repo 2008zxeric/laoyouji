@@ -1,0 +1,6 @@
+{
+  "name": "老友记老好玩儿",
+  "description": "面向50-75岁高净值知识分子的文旅慢游、学术研学与乐龄赛事平台，融入会员积分与AI智能管家。",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
