@@ -32,7 +32,7 @@ export const CalendarModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         title: e.title,
         type: '赛事',
         id: e.id,
-        price: e.price,
+        price: e.registrationFee || (e as any).price || 0,
         destination: e.city,
       })
     );

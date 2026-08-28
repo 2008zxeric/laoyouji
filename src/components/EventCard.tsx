@@ -9,9 +9,20 @@ interface EventCardProps {
 
 export const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const { setSelectedEvent, toggleFavorite, isFavorited, openPoster, openBooking, isCareMode } = useApp();
-  const isFav = isFavorited(event.id);
+  if (!event) return null;
 
-  const percentFull = Math.min(100, Math.round((event.registeredTeams / event.maxTeams) * 100));
+  const isFav = isFavorited(event.id || '');
+  const registeredTeams = event.registeredTeams || 0;
+  const maxTeams = event.maxTeams || 50;
+  const percentFull = Math.min(100, Math.round((registeredTeams / (maxTeams || 1)) * 100));
+  const coverUrl = event.cover || (event.images && event.images[0]) || 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=1200&q=80';
+  const venueDisplay = event.venue ? event.venue.split('（')[0] : '精选赛场';
+  const refereeName = event.referee?.name ? event.referee.name.split(' ')[0] : '特邀裁判长';
+  const refereeBadge = event.referee?.badge || '国家级裁判';
+  const prizePoints = event.prizePool?.points || 50000;
+  const prizeFirst = event.prizePool?.first || '冠军金奖奖杯 + 20,000名仕积分 + 终身免单研学';
+  const startDate = event.startDate || '2026-10-18';
+  const endDate = event.endDate ? (event.endDate.length > 5 ? event.endDate.slice(5) : event.endDate) : '10-21';
 
   // Care Mode: Simplified List Presentation (极简大字·无干扰展示)
   if (isCareMode) {
@@ -22,19 +33,19 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
       >
         <div className="relative aspect-[16/9] overflow-hidden bg-stone-100">
           <img
-            src={event.cover}
-            alt={event.title}
+            src={coverUrl}
+            alt={event.title || '乐龄赛事'}
             className="w-full h-full object-cover"
             loading="lazy"
           />
           <div className="absolute top-3 left-3 flex gap-2">
             <span className="bg-amber-500 text-stone-950 text-xs font-black px-3 py-1 rounded-full shadow-xs">
-              🏆 {event.category} · 报名中
+              🏆 {event.category || '智力竞技'} · 报名中
             </span>
           </div>
           <div className="absolute bottom-2.5 left-3 right-3 text-white">
             <span className="bg-black/75 px-3 py-1 rounded-xl text-xs font-bold border border-white/30">
-              📍 {event.city} · {event.venue.split('（')[0]}
+              📍 {event.city || '全国'} · {venueDisplay}
             </span>
           </div>
         </div>
@@ -44,18 +55,20 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
             <h3 className="font-serif font-bold text-lg sm:text-xl text-[#2C3E50] leading-snug">
               {event.title}
             </h3>
-            <p className="text-sm text-stone-700 mt-1 font-medium line-clamp-2">
-              {event.subtitle}
-            </p>
+            {event.subtitle && (
+              <p className="text-sm text-stone-700 mt-1 font-medium line-clamp-2">
+                {event.subtitle}
+              </p>
+            )}
           </div>
 
           <div className="bg-stone-100 p-2.5 rounded-xl border border-stone-300 flex items-center justify-between text-xs text-stone-800 font-bold">
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-[#D4AF37]" />
-              比赛时间：{event.startDate} ~ {event.endDate.slice(5)}
+              比赛时间：{startDate} ~ {endDate}
             </span>
             <span className="text-amber-800 font-black">
-              已报 {event.registeredTeams}/{event.maxTeams} 席
+              已报 {registeredTeams}/{maxTeams} 席
             </span>
           </div>
 
@@ -63,7 +76,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
             <div>
               <span className="text-xs text-stone-500 font-bold block">参赛服务费</span>
               <span className="text-2xl font-black font-serif text-[#2C3E50]">
-                ¥{event.registrationFee}
+                ¥{event.registrationFee || 2280}
               </span>
               <span className="text-xs text-stone-600 font-bold ml-1">/人</span>
             </div>
@@ -93,7 +106,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
       <div className="bg-gradient-to-r from-[#2C3E50] via-[#34495e] to-[#2C3E50] text-amber-50 px-4 py-1.5 flex items-center justify-between text-xs font-semibold border-b border-[#D4AF37]/30">
         <div className="flex items-center gap-1.5">
           <Trophy className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span>乐龄赛事 · {event.category}</span>
+          <span>乐龄赛事 · {event.category || '文体竞技'}</span>
         </div>
         <span className="bg-[#D4AF37] text-stone-950 px-2 py-0.5 rounded text-[10px] font-bold">
           火热报名中
@@ -103,8 +116,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
       {/* Cover & Badges */}
       <div className="relative aspect-[16/9] overflow-hidden bg-stone-100">
         <img
-          src={event.cover}
-          alt={event.title}
+          src={coverUrl}
+          alt={event.title || '赛事封面'}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
         />
@@ -136,14 +149,14 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           </button>
         </div>
 
-        {/* Referee badge */}
+        {/* Referee badge & Venue */}
         <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-white text-xs">
           <span className="flex items-center gap-1 text-stone-200">
             <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
-            {event.city} · {event.venue.split('（')[0]}
+            {event.city || '全国'} · {venueDisplay}
           </span>
           <span className="bg-black/60 backdrop-blur-md text-[#D4AF37] font-semibold px-2 py-0.5 rounded-full text-[11px] border border-[#D4AF37]/30">
-            {event.referee.badge}：{event.referee.name.split(' ')[0]}
+            {refereeBadge}：{refereeName}
           </span>
         </div>
       </div>
@@ -154,9 +167,11 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <h3 className="font-serif font-bold text-base md:text-lg text-[#2C3E50] leading-snug line-clamp-2 hover:text-[#D4AF37] transition-colors">
             {event.title}
           </h3>
-          <p className="text-xs md:text-sm text-stone-600 mt-1 line-clamp-2">
-            {event.subtitle}
-          </p>
+          {event.subtitle && (
+            <p className="text-xs md:text-sm text-stone-600 mt-1 line-clamp-2">
+              {event.subtitle}
+            </p>
+          )}
         </div>
 
         {/* Prize Pool Highlight Card */}
@@ -166,10 +181,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               <Award className="w-4 h-4 text-[#D4AF37]" />
               <span>冠军益智礼遇</span>
             </div>
-            <span className="text-[#85660d] font-bold">积分礼遇 {event.prizePool.points.toLocaleString()}分</span>
+            <span className="text-[#85660d] font-bold">积分礼遇 {prizePoints.toLocaleString()}分</span>
           </div>
-          <div className="text-stone-800 text-xs font-medium pl-5">
-            {event.prizePool.first}
+          <div className="text-stone-800 text-xs font-medium pl-5 line-clamp-1">
+            {prizeFirst}
           </div>
         </div>
 
@@ -178,10 +193,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1 text-stone-500">
               <Calendar className="w-3.5 h-3.5 text-stone-400" />
-              比赛时间：{event.startDate} ~ {event.endDate.slice(5)}
+              比赛时间：{startDate} ~ {endDate}
             </span>
             <span className="font-medium text-[#2C3E50]">
-              已报 {event.registeredTeams} / {event.maxTeams} 席 ({percentFull}%)
+              已报 {registeredTeams} / {maxTeams} 席 ({percentFull}%)
             </span>
           </div>
 
@@ -201,7 +216,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               <span className="text-xs text-stone-500">参赛服务费</span>
               <span className="text-xs text-[#2C3E50] font-bold">¥</span>
               <span className="text-xl font-bold font-serif text-[#2C3E50]">
-                {event.registrationFee}
+                {event.registrationFee || 2280}
               </span>
               <span className="text-xs text-stone-400">/人</span>
             </div>
@@ -214,7 +229,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 e.stopPropagation();
                 openBooking('event', event);
               }}
-              className="bg-[#2C3E50] hover:bg-[#1a252f] text-amber-100 px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all active:scale-95 shadow-xs flex items-center gap-1 border border-[#D4AF37]/30"
+              className="bg-[#2C3E50] hover:bg-[#1a252f] text-amber-100 px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all active:scale-95 shadow-xs flex items-center gap-1 border border-[#D4AF37]/30 cursor-pointer"
             >
               <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>组队报名</span>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Activity, TournamentEvent, Order } from '../types';
+import { Activity, TournamentEvent, Order, DayItinerary } from '../types';
 import {
   Calendar,
   Clock,
@@ -64,18 +64,7 @@ export interface PlannedTripItem {
     phone: string;
     avatar?: string;
   };
-  itineraryDays?: {
-    day: number;
-    title: string;
-    theme: string;
-    morning: string;
-    afternoon: string;
-    evening: string;
-    dining: { breakfast: string; lunch: string; dinner: string };
-    hotel: string;
-    stepsEstimated: string;
-    tips?: string;
-  }[];
+  itineraryDays?: DayItinerary[];
   eventSchedule?: {
     time: string;
     title: string;

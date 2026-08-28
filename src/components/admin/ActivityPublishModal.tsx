@@ -653,7 +653,7 @@ export const ActivityPublishModal: React.FC<ActivityPublishModalProps> = ({
     };
 
     if (initialActivity && (initialActivity as any).id) {
-      updateActivity(activityData);
+      updateActivity(activityData.id, activityData);
       showToast(`已成功更新并审核活动：《${actTitle}》`);
     } else {
       addActivity(activityData);
@@ -720,7 +720,7 @@ export const ActivityPublishModal: React.FC<ActivityPublishModalProps> = ({
     };
 
     if (initialEvent) {
-      updateEvent(eventData);
+      updateEvent(eventData.id, eventData);
       showToast(`已成功更新乐龄赛事：《${evtTitle}》`);
     } else {
       addEvent(eventData);

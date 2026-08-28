@@ -22,11 +22,15 @@ export const TourToolsPanel: React.FC<Props> = ({ targetId, title, kind = 'activ
     // Look up in local app state or gateway
     const foundAct = activities.find((a) => a.id === targetId || (a as any)._id === targetId);
     const foundEvt = events.find((e) => e.id === targetId || (e as any)._id === targetId);
-    const targetData = foundAct || foundEvt || { title, destination: '苏州·太湖', date: '2026-09-15' };
+    const targetData: { title: string; destination: string; date: string } = {
+      title: foundAct?.title || foundEvt?.title || title,
+      destination: (foundAct as any)?.destination || (foundEvt as any)?.city || '苏州·太湖',
+      date: (foundAct as any)?.date || (foundEvt as any)?.startDate || '2026-09-15',
+    };
     setAct(targetData);
 
     const relatedOrders = allOrders
-      .filter((o) => o.status === 'paid' || o.status === 'confirmed' || o.status === 'completed')
+      .filter((o) => o.status === 'paid' || o.status === 'travelling' || o.status === 'completed')
       .map((o) => ({
         _id: o.id,
         orderNo: o.orderNo,

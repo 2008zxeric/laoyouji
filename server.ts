@@ -52,6 +52,13 @@ app.post("/api/ai-concierge", async (req, res) => {
 2. 文字清晰、排版清爽优美，重点突出，适合乐龄人群阅读（避免大段密集小字，多用分行与要点标示）。
 3. 突出安全第一、慢节奏、深度文化、养生舒适、无购物无催促的旅行哲学。
 
+【重要安全与知识范围限制 (STRICT DOMAIN SCOPE & TOKEN LIMIT)】：
+1. 范围限制：你的所有问答服务必须严格限制在“老友记老好玩儿”平台相关的领域：老年文化慢游研学、名师学者特窟讲座、乐龄赛事（掼蛋/门球/太极/桥牌）、适老化体能步数评估、慢病用药提醒、随团TGO管家与红十字急救护士保障、名仕会员权益与积分商城抵扣、已报活动日程查询与退改规则。
+2. 严禁回答与本站无关的通用话题（如写计算机代码、分析国际股票、敏感政治话题、中小学考试辅导等）。
+3. 如遇超范围问题，请以极具关怀与礼貌的语气温和拒绝并引导回本站：
+   “尊敬的老友，小老友是专属于『老友记老好玩儿』的乐龄伴游管家，我的知识库专注于为您解答本站的文化慢游研学、名家学术讲座、乐龄赛事、出行体能评估与会员权益。关于本站的活动与行程准备，您有什么想了解的，我随时为您贴心解答！”
+4. 控制单次回复精简明晰，排版清爽，字数控制在 150~350 字以内，避免长篇大论造成长辈阅读疲劳。
+
 当前系统可检索到的上下文数据：
 - 用户身份：${userContext.name || "赵教授"}，${userContext.level || "博雅·知音"}，可用积分：${userContext.points || 3680}分。
 - 用户已报名/已支付的行程订单（下周/近期日程）：${JSON.stringify(orders.slice(0, 5))}
@@ -115,6 +122,7 @@ app.post("/api/ai-concierge", async (req, res) => {
             systemInstruction,
             responseMimeType: "application/json",
             temperature: 0.6,
+            maxOutputTokens: 750,
           },
         });
 
@@ -449,6 +457,368 @@ ${JSON.stringify(availableActivities.slice(0, 8), null, 2)}
   } catch (error) {
     console.error("AI Monthly Plan error:", error);
     res.status(500).json({ error: "生成月度计划失败，请稍后重试" });
+  }
+});
+
+// AI Senior Slow-Travel Custom Itinerary Planner API (3日/多日适老慢游智能规划)
+app.post("/api/ai-travel-planner", async (req, res) => {
+  try {
+    const {
+      duration = 3,
+      destination = "苏州 · 园林文脉与昆曲慢游",
+      pace = "moderate",
+      themes = ["学者同行", "茶道雅集", "适老五星"],
+      companion = "夫妻老友结伴",
+      healthNeeds = "轻度高血压，偏好低盐软烂餐饮，少爬陡阶",
+      userProfile = {},
+    } = req.body;
+
+    const ai = getGeminiClient();
+
+    const durationDays = Number(duration) || 3;
+    const paceDesc =
+      pace === "relaxed"
+        ? "极度舒缓 (日均≤3500步，全平地缓坡，设长午休与多道茶歇，配备适老电瓶车)"
+        : pace === "active"
+        ? "深度探古 (日均5000-6500步，名师深入讲解，少量缓坡，配轻便防滑登山杖)"
+        : "闲适慢品 (日均3500-5000步，平缓石板路，避开高峰，随车医护巡测)";
+
+    const systemInstruction = `
+你是由“老友记老好玩儿”老年文旅社区专为50~75岁长辈打造的首席【AI 乐龄慢游行程规划大师】“小老友”。
+你的职责是为长辈定制一份极致贴心、儒雅清爽、适老五星标准的【${durationDays}天${durationDays - 1}晚 个性化慢游研学行程】。
+
+【输入参数】：
+- 目的地：${destination}
+- 天数：${durationDays}天${durationDays - 1}晚
+- 出游节奏：${paceDesc}
+- 偏好主题：${(themes || []).join("、")}
+- 同行人员：${companion}
+- 健康关怀：${healthNeeds}
+- 用户身份：${userProfile.name || "赵教授"}，${userProfile.level || "博雅·知音"}
+
+【乐龄慢游六大黄金铁律 (ELDERLY SLOW-TRAVEL PRINCIPLES)】：
+1. 慢节奏精游：上午专注游览1个核心文脉点（避开早高峰，特约VIP免排队通道），下午安排1个悠闲雅集（听曲/品茗/非遗）。
+2. 必备午间休整：每天中午 13:00~15:00 必须安排 1.5~2 小时酒店或茶肆静卧午休（老年人体力恢复的关键）。
+3. 适老餐饮标准：严选“少油、低盐、低糖、软烂易咀嚼”的当地老字号养生药膳分餐。
+4. 医疗急救与用药提醒：行程全程随车配备便携 AED 与三甲护士，每日标注文明用药提醒（早餐后降压、晚间泡脚）。
+5. 适老步数控制：每日严格标注预估步数（平缓路段），每走 25-30 分钟必须安排休息软椅茶歇。
+6. 名师学者与金牌管家：配置国家级文博导师解构历史，配置持有红十字急救证的 TGO 管家全程照料。
+
+请返回纯 JSON 格式：
+{
+  "itineraryTitle": "行程主标题（如：姑苏秋韵 · 3日江南园林文脉与昆曲私享慢游）",
+  "subtitle": "副标题（如：特邀文博博导现场解构 · 适老五星舒缓节奏 · 随团医护与AED双重护航）",
+  "destination": "${destination}",
+  "durationDays": ${durationDays},
+  "durationNights": ${durationDays > 1 ? durationDays - 1 : 0},
+  "paceType": "${pace}",
+  "avgDailySteps": ${pace === "relaxed" ? 3400 : pace === "active" ? 5600 : 4200},
+  "themeTags": ["学者同行", "茶道雅集", "适老五星", "纯玩慢行"],
+  "elderPhilosophy": "一段80-120字的慢游哲学寄语与适老设计说明",
+  "assignedMaster": {
+    "name": "名师姓名",
+    "title": "名师职称与荣誉",
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    "speechTheme": "现场讲座/导赏主题"
+  },
+  "assignedTgo": {
+    "name": "专属管家姓名",
+    "cert": "红十字急救员认证 / 适老化高级护理",
+    "motto": "以侍父母之心，守候老友慢游"
+  },
+  "medicalAssurance": [
+    "随团配备专业急救护士与便携式 AED 除颤仪",
+    "随车配备折叠观光坐凳、防滑轻便登山手杖",
+    "入住五星级适老化养生酒店（配安全防滑扶手与紧急呼叫铃）",
+    "根据老友慢性病史定制少油低盐软烂分餐"
+  ],
+  "days": [
+    {
+      "day": 1,
+      "dateLabel": "第 1 天",
+      "title": "单日主题与核心亮点",
+      "theme": "慢游副主题",
+      "estimatedSteps": "约 3,500 步 (平缓平地)",
+      "morning": {
+        "time": "09:00 - 11:30",
+        "title": "上午行程（避开人流的高品质文博/名园参观）",
+        "desc": "详细描述（名师解构、休息节奏、观景亮点）",
+        "elderCare": "适老关怀（如无障碍通道、平缓坡道、随身温水）"
+      },
+      "lunch": {
+        "time": "12:00 - 13:00",
+        "restaurant": "老字号养生餐厅",
+        "menu": "代表性软烂低盐养生菜品名"
+      },
+      "noonRest": {
+        "time": "13:30 - 15:30",
+        "desc": "返回五星酒店进行 2 小时静卧午休，恢复体力"
+      },
+      "afternoon": {
+        "time": "16:00 - 17:30",
+        "title": "下午行程（古茶室品茗、名师沙龙或非遗私享）",
+        "desc": "详细描述",
+        "elderCare": "室内雅座配护腰软椅"
+      },
+      "dinner": {
+        "time": "18:00 - 19:30",
+        "restaurant": "时令药膳晚宴",
+        "menu": "代表性滋补清淡菜肴"
+      },
+      "evening": {
+        "time": "20:00 自由休憩",
+        "desc": "酒店提供草本足浴包与温热安神汤，管家晚间巡访与次日服药提醒"
+      },
+      "hotel": "精选五星级适老化养生度假酒店",
+      "medicationTip": "早餐后按时服用日常降压药，晚间请勿饮浓茶，泡脚水温控制在40℃"
+    }
+  ],
+  "spokenSummary": "适合慢速语音朗读给长辈听的温润口语（200-280字，涵盖亮点、步数、午休与医护保障）",
+  "estimatedPrice": ${durationDays * 1280}
+}
+`;
+
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: [{ role: "user", parts: [{ text: `请为${userProfile.name || "老友"}生成${durationDays}天定制行程。` }] }],
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.5,
+            maxOutputTokens: 1800,
+          },
+        });
+
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          return res.json({ success: true, plan: parsed, source: "gemini" });
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini travel planner failed, falling back:", geminiErr);
+      }
+    }
+
+    // High quality Senior 3-day heuristic fallback tailored to destination
+    const isSuzhou = destination.includes("苏州") || destination.includes("园林") || destination.includes("江南");
+    const isHuangshan = destination.includes("黄山") || destination.includes("徽州");
+    const isDunhuang = destination.includes("敦煌") || destination.includes("莫高窟") || destination.includes("丝绸之路");
+    const isXiAn = destination.includes("西安") || destination.includes("唐") || destination.includes("陕");
+
+    const destTitle = isSuzhou
+      ? "苏州 · 园林文脉与昆曲慢游"
+      : isHuangshan
+      ? "黄山 · 徽州古村与温泉旅居"
+      : isDunhuang
+      ? "敦煌 · 莫高特窟与大漠星空"
+      : isXiAn
+      ? "西安 · 盛唐古建与陕博专享"
+      : `${destination} · 适老文脉慢游定制`;
+
+    const masterName = isSuzhou ? "周元白 教授 (古典园林学者)" : isHuangshan ? "程建国 导师 (徽派建筑文史专家)" : isDunhuang ? "樊教授 (敦煌石窟艺术博导)" : "李守仁 馆长 (文博研究员)";
+
+    const generatedDays = [];
+    for (let d = 1; d <= durationDays; d++) {
+      if (d === 1) {
+        generatedDays.push({
+          day: 1,
+          dateLabel: "第 1 天",
+          title: isSuzhou
+            ? "名园初探 · 拙政园VIP闭馆专场与昆曲晨曲"
+            : isHuangshan
+            ? "名仕集结 · 宏村静谧晨雾与徽州砖雕私享"
+            : isDunhuang
+            ? "丝路启程 · 敦煌石窟特级专家导学"
+            : "古都初遇 · VIP文博导赏与老字号洗尘",
+          theme: "避开人流高峰 · 专属名师现场解构文脉",
+          estimatedSteps: pace === "relaxed" ? "约 3,200 步 (全程平地)" : "约 4,200 步 (平缓石板道)",
+          morning: {
+            time: "09:00 - 11:30",
+            title: isSuzhou
+              ? "拙政园名师专属闭馆私享导赏"
+              : isHuangshan
+              ? "宏村月沼水系漫步与古民居造境"
+              : isDunhuang
+              ? "莫高窟VIP特窟专属开放与专家解构"
+              : "省文博特聘专家带队深度赏析",
+            desc: `VIP绿色通道免排队，${masterName}现场解构历史造境美学，沿途每隔20分钟在回廊木椅静坐品评。`,
+            elderCare: "全程平缓无障碍通道，随团大巴免费提供轻量防滑手杖与折叠坐凳。",
+          },
+          lunch: {
+            time: "12:00 - 13:00",
+            restaurant: "老字号养生分餐精选",
+            menu: isSuzhou
+              ? "清蒸太湖白鱼（去细刺）、手剥松仁虾仁、莼菜银鱼羹、软糯菜饭"
+              : isHuangshan
+              ? "清炖石耳土鸡汤、徽州问政山笋、太白豆腐煲（低盐少油）"
+              : "精选清真养生手抓羊肉（软烂低脂）、当季时蔬清炒、百合甜汤",
+          },
+          noonRest: {
+            time: "13:30 - 15:30",
+            desc: "入住五星级适老化养生度假酒店，安排充足的 2 小时静卧午休，客房备有荞麦降压枕与隔音降噪系统。",
+          },
+          afternoon: {
+            time: "16:00 - 17:30",
+            title: isSuzhou
+              ? "古茶肆私享雅集与昆曲名段清唱"
+              : isHuangshan
+              ? "黄山毛峰开汤品鉴与新安医道养生"
+              : "丝路壁画临摹工坊体验与学者座谈",
+            desc: "临水古茶室专场，特邀非遗传承人现场献艺，品当季明前香茗与低糖手工茶点。",
+            elderCare: "室内雅座配备人体工学护腰软椅，温热白开水随时供应。",
+          },
+          dinner: {
+            time: "18:00 - 19:30",
+            restaurant: "时令药膳养生晚宴",
+            menu: "砂锅百合老鸭煲、清炒鸡头米、素烧荷塘小炒（滋阴润燥标准）",
+          },
+          evening: {
+            time: "20:00 自由休整",
+            desc: "客房供应草本温热足浴包与安神酸枣仁茶，TGO管家晚间巡访并提示次日天气与服药要点。",
+          },
+          hotel: "五星级适老化养生度假酒店（配浴室防滑把手与应急呼叫）",
+          medicationTip: "早餐后请按时服用降压药；睡前请勿饮浓茶，泡脚水温建议控制在40℃以内。",
+        });
+      } else if (d === 2) {
+        generatedDays.push({
+          day: 2,
+          dateLabel: "第 2 天",
+          title: isSuzhou
+            ? "水乡留痕 · 艺圃听泉与留园冠云峰慢步"
+            : isHuangshan
+            ? "新安山居 · 呈坎八卦古村与温泉道医理疗"
+            : isDunhuang
+            ? "大漠鸣沙 · 月牙泉适老电瓶观光与夕阳摄影"
+            : "文脉雅集 · 碑林拓印体验与古琴雅聚",
+          theme: "慢步寻幽 · 诗意茶席与舒缓身心",
+          estimatedSteps: pace === "relaxed" ? "约 3,500 步 (缓坡木栈道)" : "约 4,500 步 (平缓步道)",
+          morning: {
+            time: "09:30 - 11:30",
+            title: isSuzhou
+              ? "艺圃小品慢赏与延光阁水榭品茗"
+              : isHuangshan
+              ? "呈坎八卦古村易经文化走读"
+              : "榆林窟壁画特展与莫高学堂座谈",
+            desc: "推迟半小时出发，长辈从容享受丰盛热早餐。名师带您漫步静谧庭院，慢赏建筑空间精妙。",
+            elderCare: "大巴车程仅20分钟，车内恒温24℃，配有低踏板与适老扶手。",
+          },
+          lunch: {
+            time: "12:00 - 13:00",
+            restaurant: "江南私房养生素食馆",
+            menu: "罗汉斋煲、鲜鲍汁煨竹荪、时令秋葵炒鲜百合、杂粮养生粥",
+          },
+          noonRest: {
+            time: "13:30 - 15:30",
+            desc: "回酒店进行 2 小时静心午睡，或在酒店恒温水疗池进行温和足部放松。",
+          },
+          afternoon: {
+            time: "16:00 - 17:30",
+            title: isSuzhou
+              ? "留园冠云峰奇石赏析与苏绣名家工坊"
+              : isHuangshan
+              ? "黄山温泉理疗中心 · 中药泡池舒缓关节"
+              : "鸣沙山夕阳观景台（乘无颠簸电瓶车直达）",
+            desc: "近距离观摩大师刺绣针法与天然奇石，随团医生巡访长辈体能状态。",
+            elderCare: "配备无障碍观光车，免除长途徒步，舒适安全。",
+          },
+          dinner: {
+            time: "18:00 - 19:30",
+            restaurant: "名厨定制苏式家宴",
+            menu: "松鼠桂鱼（微酸少甜软嫩）、清炒太湖菜薹、鲜炖菌菇汤",
+          },
+          evening: {
+            time: "20:00 夜话风雅",
+            desc: "老友茶话会或庭院听风，TGO管家协助整理当日精美跟拍照片并冲印实体相册。",
+          },
+          hotel: "五星级适老化养生度假酒店",
+          medicationTip: "温泉或足浴时间单次不超过15分钟；糖尿病长辈睡前请少量饮用温水并监测血糖。",
+        });
+      } else {
+        generatedDays.push({
+          day: d,
+          dateLabel: `第 ${d} 天`,
+          title: isSuzhou
+            ? "平江文脉 · 耦园枕波与老友结业欢送"
+            : isHuangshan
+            ? "古道诗意 · 屯溪老街非遗墨庄探秘与返程"
+            : isDunhuang
+            ? "沙州告别 · 敦煌书局茶歇与尊享返程"
+            : "圆满结业 · 雅集证书颁发与舒适送站",
+          theme: "慢享余韵 · 馈赠佳品与专车平安返程",
+          estimatedSteps: "约 2,800 步 (极度轻松)",
+          morning: {
+            time: "09:30 - 11:30",
+            title: isSuzhou ? "耦园佳偶天成雅集与结业赠礼" : "非遗墨庄拓印体验与老友茶话会",
+            desc: "颁发名师签名的研学结业荣誉证书，赠送老友定制文创伴手礼盒与精装合影相册。",
+            elderCare: "行李已由TGO管家提前安放于专车，长辈一身轻松无负担。",
+          },
+          lunch: {
+            time: "12:00 - 13:00",
+            restaurant: "老友欢送养生午宴",
+            menu: "清炖狮子头、芦蒿炒香干、养生山药排骨汤（少盐软烂）",
+          },
+          noonRest: {
+            time: "13:30 - 14:30",
+            desc: "午后于贵宾休息室从容休整，品尝温热养生茶饮，准备启程。",
+          },
+          afternoon: {
+            time: "14:30 - 16:00",
+            title: "适老专车管家式送站",
+            desc: "金牌管家与专车护送长辈直达高铁站/机场VIP商务通道，协助行李托运与安检，平安返程。",
+            elderCare: "全程行李免搬运，提供一对一搀扶与绿色通道陪同。",
+          },
+          evening: {
+            time: "18:00 - 20:00",
+            desc: "平安抵家，TGO管家微信致电回访，确认安好。",
+          },
+          dinner: {
+            time: "18:00",
+            restaurant: "抵家后家常清淡晚膳",
+            menu: "清粥小菜或温馨家宴",
+          },
+          hotel: "平安返程家中",
+          medicationTip: "乘车期间请随身携带保温杯与常备口服药，坐姿适度活动踝关节。",
+        });
+      }
+    }
+
+    const fallbackCustomPlan = {
+      itineraryTitle: `${destTitle} · ${durationDays}日慢游研学`,
+      subtitle: `名师学者闭馆专场导赏 · 适老五星舒缓节奏 · 随团急救护士与AED全程护航`,
+      destination: destTitle,
+      durationDays,
+      durationNights: durationDays > 1 ? durationDays - 1 : 0,
+      paceType: pace,
+      avgDailySteps: pace === "relaxed" ? 3400 : pace === "active" ? 5500 : 4100,
+      themeTags: themes,
+      elderPhilosophy: `针对${userProfile.name || "赵教授"}的体能节奏与文化偏好精心定制：全程纯玩无购物，每日单点精研，下午必安排2小时静卧午休，餐饮低盐少油软烂可口，红十字急救护士随团护航。`,
+      assignedMaster: {
+        name: masterName,
+        title: "国家级文博研究学者 / 名誉博导",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        speechTheme: "《江南造园的文人退隐意趣与造境心法》",
+      },
+      assignedTgo: {
+        name: "林婉茹 (金牌TGO管家)",
+        cert: "红十字急救员认证 / 适老化高级护理",
+        motto: "以侍父母之心，守候老友慢游",
+      },
+      medicalAssurance: [
+        "随团随车配备专业急救护士与便携式 AED 除颤仪",
+        "随车配备轻量防滑手杖、折叠观光坐凳与全天温热水壶",
+        "精选五星级适老化养生酒店（配卫生间防滑扶手、紧急呼叫铃）",
+        "餐饮严格遵行少油低盐、软烂易消化标准，按需分餐定制",
+      ],
+      days: generatedDays,
+      spokenSummary: `尊敬的${userProfile.name || "老友"}，已为您量身定制好${durationDays}天${destTitle}行程。本行程每日步数平缓控制在四千步以内，避开人流高峰，中午均安排两小时酒店静卧午休，全程配备红十字急救护士与AED设备，餐饮低盐少油软烂可口，非常惬意舒缓！`,
+      estimatedPrice: durationDays * 1280,
+    };
+
+    return res.json({ success: true, plan: fallbackCustomPlan, source: "fallback" });
+  } catch (error) {
+    console.error("AI Travel Planner error:", error);
+    res.status(500).json({ error: "生成慢游规划失败，请稍后重试" });
   }
 });
 
@@ -900,6 +1270,228 @@ app.post("/api/ai-itinerary-tips", async (req, res) => {
   } catch (error) {
     console.error("AI Itinerary Tips error:", error);
     res.status(500).json({ error: "获取行程贴士失败" });
+  }
+});
+
+// AI Activity & Event Specific Senior QA API (适老行程/赛事专项智能答疑)
+app.post("/api/ai-activity-qa", async (req, res) => {
+  try {
+    const {
+      itemTitle,
+      destination,
+      durationDays = 5,
+      fitnessDesc = "每日步数约4000步，平缓步道",
+      masterName,
+      tgoName,
+      question,
+      userProfile = {},
+      isEvent = false,
+    } = req.body;
+
+    if (!question) {
+      return res.status(400).json({ error: "请输入您想了解的问题" });
+    }
+
+    const ai = getGeminiClient();
+
+    const systemInstruction = `
+你是由“老友记老好玩儿”老年文旅社区专为50~75岁长辈打造的金牌AI伴游管家“小老友”。
+针对当前长辈正在浏览的【${isEvent ? "乐龄赛事" : "慢游研学活动"}】：
+- 标题：《${itemTitle || "文化研学慢游"}》
+- 目的地/城市：${destination || "江南"}
+- 天数：${durationDays}天
+- 体能要求：${fitnessDesc}
+- 随团名师：${masterName || "国家级文博学者"}
+- 专属管家：${tgoName || "金牌TGO管家"}
+- 当前咨询长辈情况：${userProfile.name || "老友"}，年龄约 ${userProfile.age || 68} 岁，慢性病史：${JSON.stringify(userProfile.healthProfile || { hasHypertension: true })}
+
+【知识范围与Token限制】：
+1. 你的回答必须严格围绕本行程/赛事展开：适老化节奏、步数与路面坡度、随团急救护士与AED保障、餐饮清淡低糖安排、慢性病服药与防寒防晒衣物准备、退改与行程须知。
+2. 严禁回答超出本行程及老年文旅健康范围的话题。
+3. 语气儒雅温和、体贴入微、字数在 120~250 字以内，条理分明。
+
+请返回纯 JSON 格式：
+{
+  "answer": "条理清晰、排版优美的贴心文字回复（支持Markdown分点）",
+  "spokenText": "适合朗读给长辈听的温润口语（不含特殊符号，60-100字）",
+  "suitabilityScore": 95, // 0-100 整数，对该长辈的适老契合度
+  "comfortTips": ["要点1", "要点2"]
+}
+`;
+
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: [{ role: "user", parts: [{ text: `长辈问：${question}` }] }],
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.5,
+            maxOutputTokens: 500,
+          },
+        });
+
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          return res.json({ success: true, ...parsed, source: "gemini" });
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini activity QA failed, falling back:", geminiErr);
+      }
+    }
+
+    // Heuristic Fallback for Activity QA
+    const qLower = (question || "").toLowerCase();
+    let ans = `尊敬的${userProfile.name || "老友"}，针对《${itemTitle || "文化慢游"}》：本行程全程坚持“纯玩无购物、慢节奏深体验”原则。每日步行节奏控制在 3,500~4,500 步左右，沿途设有休息茶歇，随车配备持证急救护士与便携式 AED，用餐均以少油少盐软烂可口为主。`;
+    let spoken = `老友您好，本行程每日步数平缓在四千步左右，全程随团配备红十字急救医护人员与AED除颤仪，餐饮清淡可口，非常适合您的体能节奏！`;
+    const tips = ["随身带好常备慢病药物", "穿着防滑软底健步鞋", "随车随时供应温开水"];
+
+    if (qLower.includes("高血压") || qLower.includes("心脏") || qLower.includes("药") || qLower.includes("病")) {
+      ans = `尊敬的${userProfile.name || "老友"}：\n1. **医疗急救**：随团配有红十字会认证急救员与便携 AED，每日早晚提供免费血压/脉搏监测；\n2. **用药提醒**：TGO管家会在早餐及晚餐后温馨提醒按时服药，建议随身携带多备3天的常备降压/降糖药；\n3. **步道平缓**：无陡坡急阶，行走每25分钟驻足休息5分钟，长辈完全可以安心参与。`;
+      spoken = `老友请放心，随团随车配有专业医护和AED，早晚巡测血压，管家贴心提醒服药，步道平坦无陡坡，完全适合慢病长辈安心出行！`;
+    } else if (qLower.includes("步") || qLower.includes("累") || qLower.includes("走") || qLower.includes("坡")) {
+      ans = `尊敬的${userProfile.name || "老友"}：\n1. **步数适中**：日均步数预估在 3,800~4,200 步，全程石阶均有无障碍缓坡或轮椅通道备用；\n2. **坐凳手杖**：随团大巴免费提供轻量防滑手杖与折叠观光坐凳；\n3. **车程舒适**：单次车程严格控制在 90 分钟以内，中途均设有卫生间适老停靠点。`;
+      spoken = `本行程日均步数在四千步以内，路面平缓，大巴配备轻便登山杖与休息折叠坐凳，单次车程不超过一个半小时，非常惬意舒缓。`;
+    } else if (qLower.includes("吃") || qLower.includes("餐") || qLower.includes("菜") || qLower.includes("糖")) {
+      ans = `尊敬的${userProfile.name || "老友"}：\n1. **适老餐饮**：精选当地高品质养生膳食，严格执行“少油、低盐、无添加高糖、软烂易咀嚼”标准；\n2. **忌口定制**：如您有痛风、糖尿病或清真素食等特殊饮食需求，出发前管家将一对一录入系统并为餐厅单独定制分餐。`;
+      spoken = `餐饮方面均选用当地当季新鲜养生食材，低盐少油软烂易嚼，如果您有忌口或低糖需求，随团管家会为您单独定制分餐！`;
+    }
+
+    return res.json({
+      success: true,
+      answer: ans,
+      spokenText: spoken,
+      suitabilityScore: 96,
+      comfortTips: tips,
+      source: "fallback",
+    });
+  } catch (error) {
+    console.error("AI Activity QA error:", error);
+    res.status(500).json({ error: "获取AI适老答疑失败" });
+  }
+});
+
+// AI TGO Companion Senior Matching API (TGO专属管家适老匹配度测评)
+app.post("/api/ai-tgo-match", async (req, res) => {
+  try {
+    const { tgoName, tgoTitle, tgoSpecialties = [], tgoMotto, userProfile = {} } = req.body;
+
+    const ai = getGeminiClient();
+
+    const systemInstruction = `
+你是由“老友记老好玩儿”设立的【AI 金牌伴游管家匹配专家】。
+针对长者用户（${userProfile.name || "退休教授"}，爱好文史慢游/戏曲/摄影/健康养生）正在浏览的 TGO 伴游管家【${tgoName || "金牌管家"}】（${tgoTitle || "国家级特聘研学导师"}，特长：${(tgoSpecialties || []).join("、")}，服务格言：“${tgoMotto || "慢游随心，如侍父母"}”），
+给出 1 份针对老年用户的【适老陪伴契合度分析】。
+
+【限制与要求】：
+1. 范围局限在老年出游照护、文博学术修养、应急急救保障、贴心适老照料。
+2. 语言儒雅真诚，字数 100~160 字。
+3. 返回纯 JSON：
+{
+  "matchRate": 98, // 85-99 的百分比
+  "highlightTitle": "...", // 如“文史深厚 · 红十字急救双认证”
+  "matchReason": "...", // 100-140字分析
+  "recommendedTopic": "..." // 推荐长辈旅途中可与该管家交流探讨的话题
+}
+`;
+
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: [{ role: "user", parts: [{ text: "请生成适老陪伴匹配度报告。" }] }],
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.5,
+            maxOutputTokens: 400,
+          },
+        });
+
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          return res.json({ success: true, ...parsed, source: "gemini" });
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini TGO Match failed, falling back:", geminiErr);
+      }
+    }
+
+    const fallbackMatch = {
+      matchRate: 98,
+      highlightTitle: "文史博雅 · 持证急救双重护航",
+      matchReason: `【${tgoName || "管家"}】老师不仅具备丰富的古典园林与文史深度沉淀，更持有红十字急救证与适老化护理认证。带团节奏温缓从容、上下车必主动搀扶，与您喜好高品质深度慢游、注重安全细节的出行需求高度契合。`,
+      recommendedTopic: "明清江南造园哲学、昆曲曲牌赏析、旅途慢性病清淡饮食调理",
+    };
+
+    return res.json({ success: true, ...fallbackMatch, source: "fallback" });
+  } catch (error) {
+    console.error("AI TGO Match error:", error);
+    res.status(500).json({ error: "获取管家匹配分析失败" });
+  }
+});
+
+// AI Booking Senior Checklist & Safety Advisor API (报名下单适老智能贴士)
+app.post("/api/ai-booking-helper", async (req, res) => {
+  try {
+    const { title, selectedDate, travelerCount = 1, pointsUsed = 0, finalPrice = 0, userHealth = {} } = req.body;
+
+    const ai = getGeminiClient();
+
+    const systemInstruction = `
+你是由“老友记老好玩儿”设立的【AI 乐龄报名核对与安全管家】。
+针对长者即将确认报名的订单（《${title}》，出发班期：${selectedDate}，人数：${travelerCount}位，实付：¥${finalPrice}，已抵扣积分：${pointsUsed}分），
+生成一份极简温暖的【AI 报名适老核对备忘】（3条核心要点）。
+
+返回纯 JSON：
+{
+  "safetyReminder": "...", // 50-80字慢病与出行温馨叮嘱
+  "pointsAdvice": "...", // 30-50字积分抵扣与升级提示
+  "checklist": [
+    "身份证原件与老年优待证",
+    "日常慢病口服药（多备3天用量）",
+    "防滑软底鞋与随身保温水杯"
+  ]
+}
+`;
+
+    if (ai) {
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: [{ role: "user", parts: [{ text: "请生成报名核对备忘。" }] }],
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.5,
+            maxOutputTokens: 400,
+          },
+        });
+
+        if (response.text) {
+          const parsed = JSON.parse(response.text);
+          return res.json({ success: true, ...parsed, source: "gemini" });
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini booking helper failed, falling back:", geminiErr);
+      }
+    }
+
+    const fallbackBooking = {
+      safetyReminder: `您的订单已包含随团专业医护保障与适老意外险。请您出发前将日常慢病药品放在随身包中，勿放入大件托运行李。`,
+      pointsAdvice: pointsUsed > 0 ? `已为您启用名仕积分抵扣，本次出游还将累积新积分！` : `您可在下方勾选积分抵扣以享受现金减免。`,
+      checklist: [
+        "本人身份证原件及老年优待证",
+        "日常慢病口服药（建议随身携带多备3天）",
+        "防滑软底健步鞋与保温水杯",
+      ],
+    };
+
+    return res.json({ success: true, ...fallbackBooking, source: "fallback" });
+  } catch (error) {
+    console.error("AI booking helper error:", error);
+    res.status(500).json({ error: "获取下单贴士失败" });
   }
 });
 

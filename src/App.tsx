@@ -19,7 +19,10 @@ import { PointsGuideModal } from './components/PointsGuideModal';
 import { InviteModal } from './components/InviteModal';
 import { ReviewModal } from './components/ReviewModal';
 import { GlobalAiConciergeModal } from './components/GlobalAiConciergeModal';
+import { TgoListModal } from './components/TgoListModal';
+import { TgoDetailModal } from './components/TgoDetailModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
+import { FrontPreviewLayer } from './components/FrontPreviewLayer';
 
 const MainApp: React.FC = () => {
   const {
@@ -32,6 +35,8 @@ const MainApp: React.FC = () => {
     setSelectedActivity,
     selectedEvent,
     setSelectedEvent,
+    selectedTgo,
+    setSelectedTgo,
     toastMessage,
   } = useApp();
 
@@ -40,6 +45,26 @@ const MainApp: React.FC = () => {
     return (
       <>
         <AdminDashboard />
+        {selectedActivity && (
+          <ActivityDetailModal
+            activity={selectedActivity}
+            onClose={() => setSelectedActivity(null)}
+          />
+        )}
+        {selectedEvent && (
+          <EventDetailModal
+            event={selectedEvent}
+            onClose={() => setSelectedEvent(null)}
+          />
+        )}
+        {selectedTgo && (
+          <TgoDetailModal
+            tgo={selectedTgo}
+            onClose={() => setSelectedTgo(null)}
+          />
+        )}
+        <BookingSheet />
+        <FrontPreviewLayer />
         {toastMessage && (
           <div className="fixed top-16 left-1/2 -translate-x-1/2 z-70 bg-amber-950/95 text-amber-200 px-4 py-2.5 rounded-2xl shadow-xl border border-amber-500/40 text-xs md:text-sm font-medium animate-fadeIn flex items-center gap-2 max-w-[90%] text-center">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
@@ -94,6 +119,16 @@ const MainApp: React.FC = () => {
           <EventDetailModal
             event={selectedEvent}
             onClose={() => setSelectedEvent(null)}
+          />
+        )}
+
+        <FrontPreviewLayer />
+        <TgoListModal />
+
+        {selectedTgo && (
+          <TgoDetailModal
+            tgo={selectedTgo}
+            onClose={() => setSelectedTgo(null)}
           />
         )}
 

@@ -23,6 +23,7 @@ import {
   DictItem,
   HealthProfile,
 } from '../types';
+import type { SiteInfo } from '../api/gateway';
 import {
   MOCK_ACTIVITIES,
   MOCK_EVENTS,
@@ -65,6 +66,7 @@ export interface UserProfile {
   emergencyContactName: string;
   emergencyContactPhone: string;
   healthProfile?: HealthProfile;
+  isLoggedIn?: boolean;
 }
 
 interface AppContextType {
@@ -90,6 +92,8 @@ interface AppContextType {
   setActivities: React.Dispatch<React.SetStateAction<Activity[]>>;
   events: TournamentEvent[];
   setEvents: React.Dispatch<React.SetStateAction<TournamentEvent[]>>;
+  tgos: Tgo[];
+  setTgos: React.Dispatch<React.SetStateAction<Tgo[]>>;
   pointsProducts: PointsProduct[];
   setPointsProducts: React.Dispatch<React.SetStateAction<PointsProduct[]>>;
   setPointsRedemptions: React.Dispatch<React.SetStateAction<PointsRedemption[]>>;
@@ -109,8 +113,8 @@ interface AppContextType {
   updateAdminUser: (id: string, user: Partial<AdminUser>) => void;
   deleteAdminUser: (id: string) => void;
   hasPermission: (permId: string) => boolean;
-  adminTheme: 'eyeCareLight' | 'warmRice' | 'slateDark';
-  setAdminTheme: React.Dispatch<React.SetStateAction<'eyeCareLight' | 'warmRice' | 'slateDark'>>;
+  adminTheme: 'eyeCareLight' | 'warmPaper' | 'darkTwilight' | 'warmRice' | 'slateDark';
+  setAdminTheme: React.Dispatch<React.SetStateAction<'eyeCareLight' | 'warmPaper' | 'darkTwilight' | 'warmRice' | 'slateDark'>>;
 
   // Data Dictionaries & Dynamic Tag / Category Tables
   dictCategories: DictCategory[];
@@ -138,6 +142,10 @@ interface AppContextType {
   setSelectedActivity: (activity: Activity | null) => void;
   selectedEvent: TournamentEvent | null;
   setSelectedEvent: (event: TournamentEvent | null) => void;
+  selectedTgo: Tgo | null;
+  setSelectedTgo: (tgo: Tgo | null) => void;
+  isTgoListOpen: boolean;
+  setIsTgoListOpen: (open: boolean) => void;
 
   // Booking Flow
   isBookingOpen: boolean;
@@ -250,6 +258,15 @@ interface AppContextType {
   // Notification Toast
   toastMessage: string | null;
   showToast: (msg: string) => void;
+
+  // Front Preview Layer
+  previewTarget: { activity?: Activity; event?: TournamentEvent } | null;
+  openFrontPreview: (target: { activity?: Activity; event?: TournamentEvent }) => void;
+  closeFrontPreview: () => void;
+
+  // Site Info Management
+  siteInfo: SiteInfo;
+  updateSiteInfo: (info: Partial<SiteInfo>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -291,6 +308,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Core Data
   const [activities, setActivities] = useState<Activity[]>(MOCK_ACTIVITIES);
   const [events, setEvents] = useState<TournamentEvent[]>(MOCK_EVENTS);
+  const [tgos, setTgos] = useState<Tgo[]>(MOCK_TGOS);
   const [pointsProducts, setPointsProducts] = useState<PointsProduct[]>(MOCK_POINTS_PRODUCTS);
   const [pointsRedemptions, setPointsRedemptions] = useState<PointsRedemption[]>(MOCK_POINTS_REDEMPTIONS);
   const [wishes, setWishes] = useState<WishItem[]>(MOCK_WISHES);
@@ -303,7 +321,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [operationLogs, setOperationLogs] = useState<OperationLog[]>(MOCK_OPERATION_LOGS);
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>(MOCK_ADMIN_USERS);
   const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser>(MOCK_ADMIN_USERS[0]);
-  const [adminTheme, setAdminTheme] = useState<'eyeCareLight' | 'warmRice' | 'slateDark'>('eyeCareLight');
+  const [adminTheme, setAdminTheme] = useState<'eyeCareLight' | 'warmPaper' | 'darkTwilight' | 'warmRice' | 'slateDark'>('eyeCareLight');
 
   // Dynamic Dictionaries State
   const [dictCategories, setDictCategories] = useState<DictCategory[]>(DEFAULT_DICT_CATEGORIES);
@@ -315,6 +333,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Modals
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<TournamentEvent | null>(null);
+  const [selectedTgo, setSelectedTgo] = useState<Tgo | null>(null);
+  const [isTgoListOpen, setIsTgoListOpen] = useState(false);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingTarget, setBookingTarget] = useState<{ type: 'activity' | 'event'; data: Activity | TournamentEvent } | null>(null);
 
@@ -349,6 +369,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
+  };
+
+  // Front Preview Layer State
+  const [previewTarget, setPreviewTarget] = useState<{ activity?: Activity; event?: TournamentEvent } | null>(null);
+  const openFrontPreview = (target: { activity?: Activity; event?: TournamentEvent }) => {
+    setPreviewTarget(target);
+  };
+  const closeFrontPreview = () => {
+    setPreviewTarget(null);
+  };
+
+  // Site Info State
+  const [siteInfo, setSiteInfo] = useState<SiteInfo>(() => {
+    const saved = localStorage.getItem('lyj_site_info');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return {
+      brand: '老友记 老好玩儿',
+      slogan: '老好玩儿了 · 雅趣同行',
+      company: '浙江四季游文旅集团有限公司',
+      serviceWechat: 'laoyouji_service',
+      servicePhone: '18100129722',
+      serviceTime: '每日 9:00 - 21:00',
+      hotline: '400-880-9966',
+      address: '浙江省宁波市海曙区天一阁文创中心4楼',
+      icp: '浙ICP备20260827号-1',
+      intro: '面向 50-75 岁高净值知青学者的乐龄文化慢游与文体赛事社区',
+      about: '老友记文旅社区以老友相聚、适老慢游为核心，专为长辈打造高品质文化研学与康养赛事体验。',
+      agreement: '老友记文旅用户服务协议与隐私声明条款……',
+    };
+  });
+
+  const updateSiteInfo = async (info: Partial<SiteInfo>) => {
+    setSiteInfo((prev) => {
+      const next = { ...prev, ...info };
+      try {
+        localStorage.setItem('lyj_site_info', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
   };
 
   // User Profile
@@ -1403,6 +1466,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActivities,
         events,
         setEvents,
+        tgos,
+        setTgos,
         pointsProducts,
         setPointsProducts,
         pointsRedemptions,
@@ -1446,6 +1511,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedActivity,
         selectedEvent,
         setSelectedEvent,
+        selectedTgo,
+        setSelectedTgo,
+        isTgoListOpen,
+        setIsTgoListOpen,
         isBookingOpen,
         bookingTarget,
         openBooking,
@@ -1524,6 +1593,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         calculateMaxPointsDeduction,
         toastMessage,
         showToast,
+        previewTarget,
+        openFrontPreview,
+        closeFrontPreview,
+        siteInfo,
+        updateSiteInfo,
       }}
     >
       {children}

@@ -33,12 +33,14 @@ const EMPTY = {
   agreed: false,
 };
 
-export const ActivityApplyModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+export const ActivityApplyModal: React.FC<{ isOpen?: boolean; onClose: () => void }> = ({ isOpen = true, onClose }) => {
   const { showToast } = useApp();
   const [form, setForm] = useState({ ...EMPTY });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [err, setErr] = useState('');
+
+  if (!isOpen) return null;
 
   const set = (k: string, v: string | boolean) => setForm((prev) => ({ ...prev, [k]: v }));
 

@@ -36,17 +36,18 @@ export interface MasterProfile {
 export interface DayItinerary {
   day: number;
   title: string;
-  theme: string;
+  theme?: string;
   morning: string;
   afternoon: string;
   evening: string;
-  dining: {
+  dining?: {
     breakfast: string;
     lunch: string;
     dinner: string;
   };
+  meals?: string;
   hotel: string;
-  stepsEstimated: string; // e.g. "约 4,200 步 (平缓石板路，无台阶)"
+  stepsEstimated?: string; // e.g. "约 4,200 步 (平缓石板路，无台阶)"
   tips?: string;
 }
 
@@ -57,6 +58,7 @@ export interface ReviewItem {
   activityId: string;
   activityTitle?: string;
   author: string;
+  userName?: string;
   avatar: string;
   memberLevel: string;
   rating: number; // 1-5
@@ -86,8 +88,9 @@ export interface ActivityDepartureDate {
   totalSlots?: number;
   largePrice: number;
   smallPrice: number;
-  singleSupplement: number;
+  singleSupplement?: number;
   status?: 'available' | 'few' | 'soldout' | 'guaranteed';
+  available?: boolean;
   tag?: string;
 }
 
@@ -145,6 +148,7 @@ export interface Activity {
   feeExcludes: string[]; // Strict 5 default items
   packingTips: string[];
   notice: string[];
+  notices?: string[];
   viewCount: number;
   rating: number;
   reviewsCount: number;
@@ -154,6 +158,7 @@ export interface Activity {
   status?: ActivityStatus; // 'published' | 'draft' | 'offline' | 'expired'
   creator?: string; // 录入人/发布人，如 "周主管 (超级管理员)", "陆经理 (管理员)"
   createdAt?: string; // 录入时间，如 "2026-08-22"
+  date?: string;
 }
 
 export type EventStatus = 'registration' | 'draft' | 'ongoing' | 'completed' | 'offline' | 'expired';
@@ -179,6 +184,7 @@ export interface TournamentEvent {
   venue: string; // 比赛场馆
   city: string; // 举办城市
   registrationFee: number; // 参赛会务费 (元)
+  price?: number;
   maxTeams: number; // 席位/队伍上限
   registeredTeams: number; // 已报名组数
   creator?: string; // 录入人/发布人 (自动取当前管理员)
@@ -226,11 +232,15 @@ export interface TournamentEvent {
 export interface MerchantApplication {
   id: string;
   merchantName: string; // 机构/商户/基地名称
-  merchantType: '康养基地/度假村' | '文化场馆/非遗研学' | '适老餐饮/茶社' | '医疗康复/健康检测' | '棋牌会所/俱乐部' | '其他特色服务';
+  merchantType: '康养基地/度假村' | '文化场馆/非遗研学' | '适老餐饮/茶社' | '医疗康复/健康检测' | '棋牌会所/俱乐部' | '其他特色服务' | string;
+  businessType?: string;
   contactPerson: string;
   phone: string;
+  contactPhone?: string;
   city: string;
   serviceDescription: string; // 提供服务或发起活动需求详情
+  serviceCapacity?: string;
+  description?: string;
   proposedActivityType?: string; // 拟发起或承办的活动
   advantage?: string; // 适老设施与优势（如电梯入户、医疗保障、无障碍通道等）
   status: 'pending' | 'approved' | 'rejected';
@@ -257,9 +267,10 @@ export interface PointsProduct {
   id: string;
   name: string;
   cover: string;
+  image?: string;
   pointsCost: number;
   originalPrice: number;
-  category: '非遗名茶' | '文旅装备' | '乐龄赛事' | '文创典籍' | '出游礼券';
+  category: '非遗名茶' | '文旅装备' | '乐龄赛事' | '文创典籍' | '出游礼券' | string;
   stock: number;
   sales: number;
   description: string;
@@ -303,6 +314,7 @@ export interface WishItem {
   status: 'voting' | 'approved' | 'in_preparation';
   votesRequired: number;
   createdAt: string;
+  reason?: string;
 }
 
 export interface ArticleItem {
@@ -368,6 +380,7 @@ export interface HealthProfile {
   mobilityLevel: 'independent' | 'gentle_walker' | 'cane_assisted' | 'wheelchair'; // 关节与行走活动度
   altitudeSensitivity: 'normal' | 'sensitive' | 'forbidden'; // 高原反应敏感度
   chronicConditions: string[]; // 慢性病标签，如 ['高血压', '糖尿病', '腰椎间盘突出', '痛风', '冠心病支架术后(>1年)']
+  chronicDiseases?: string[];
   allergies: string[]; // 过敏源，如 ['海鲜', '青霉素', '花粉']
   dailyMedications: string[]; // 常用自备药品，如 ['降压药(氨氯地平)', '降糖药(二甲双胍)', '硝酸甘油(备用)']
   maxDailyStepsComfort: number; // 适宜每日最大步数（如 3000, 5000, 8000, 12000）
@@ -387,10 +400,13 @@ export interface Traveler {
   phone: string;
   isSenior: boolean;
   dietaryNote?: string;
+  dietaryRequirement?: string;
   healthNote?: string;
   healthProfile?: HealthProfile;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  emergencyName?: string;
+  emergencyPhone?: string;
 }
 
 export type OrderStatus = 'pending_pay' | 'paid' | 'travelling' | 'completed' | 'cancelled' | 'refund_requested' | 'refunded';
@@ -420,6 +436,7 @@ export interface Order {
   hasFreeQuotaUsed?: boolean;
   refundReason?: string;
   refundTime?: string;
+  specialNeeds?: string;
 }
 
 export interface PointsLog {
@@ -520,6 +537,7 @@ export interface AdminUser {
   name: string;
   account: string;
   role: AdminRoleType;
+  roleName?: string;
   phone: string;
   lastLogin: string;
   status: 'active' | 'disabled';

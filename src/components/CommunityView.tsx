@@ -886,7 +886,7 @@ export const CommunityView: React.FC = () => {
                 {reviews.slice(0, 5).map((rev) => (
                   <div key={rev.id} className="border-b border-stone-100 last:border-0 pb-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-[#2C3E50]">{rev.userName}</span>
+                      <span className="font-bold text-[#2C3E50]">{rev.author || rev.userName}</span>
                       <span className="text-stone-400 text-[10px]">{rev.date}</span>
                     </div>
                     <p className="text-xs text-stone-600 mt-1">{rev.content}</p>

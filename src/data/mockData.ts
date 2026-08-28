@@ -167,6 +167,8 @@ export const MOCK_ACTIVITIES: Activity[] = [
       ruleSummary: '每周二、周六固定发班 (提前5天截止)',
     },
     departureDates: [
+      { date: '2026-08-29', remainingSlots: 2, largePrice: 3880, smallPrice: 5680, singleSupplement: 980, status: 'few', tag: '本月特惠' },
+      { date: '2026-08-31', remainingSlots: 4, largePrice: 3880, smallPrice: 5680, singleSupplement: 980, status: 'guaranteed', tag: '周一班' },
       { date: '2026-09-08', remainingSlots: 2, largePrice: 3880, smallPrice: 5680, singleSupplement: 980, status: 'few', tag: '周二班' },
       { date: '2026-09-12', remainingSlots: 4, largePrice: 3880, smallPrice: 5680, singleSupplement: 980, status: 'guaranteed', tag: '名师随团' },
       { date: '2026-09-15', remainingSlots: 6, largePrice: 3880, smallPrice: 5680, singleSupplement: 980, status: 'available', tag: '周二班' },
@@ -353,6 +355,7 @@ export const MOCK_ACTIVITIES: Activity[] = [
       ruleSummary: '每月逢8发班 (8/18/28日)',
     },
     departureDates: [
+      { date: '2026-08-28', remainingSlots: 2, largePrice: 7880, smallPrice: 10800, singleSupplement: 2200, status: 'few', tag: '今日开班' },
       { date: '2026-09-08', remainingSlots: 3, largePrice: 7880, smallPrice: 10800, singleSupplement: 2200, status: 'few', tag: '特窟探秘' },
       { date: '2026-09-18', remainingSlots: 2, largePrice: 7880, smallPrice: 10800, singleSupplement: 2200, status: 'few', tag: '星空私宴' },
       { date: '2026-09-28', remainingSlots: 6, largePrice: 7880, smallPrice: 10800, singleSupplement: 2200, status: 'available', tag: '金秋丝路' },
@@ -542,6 +545,7 @@ export const MOCK_ACTIVITIES: Activity[] = [
       ruleSummary: '每月逢5发班 (5/15/25日)',
     },
     departureDates: [
+      { date: '2026-08-25', remainingSlots: 1, largePrice: 4680, smallPrice: 6880, singleSupplement: 1400, status: 'few', tag: '本期余1' },
       { date: '2026-09-05', remainingSlots: 4, largePrice: 4680, smallPrice: 6880, singleSupplement: 1400, status: 'guaranteed', tag: '青城养生' },
       { date: '2026-09-15', remainingSlots: 5, largePrice: 4680, smallPrice: 6880, singleSupplement: 1400, status: 'available', tag: '道医调息' },
       { date: '2026-09-25', remainingSlots: 6, largePrice: 4680, smallPrice: 6880, singleSupplement: 1400, status: 'available', tag: '温泉私汤' },
@@ -850,6 +854,7 @@ export const MOCK_ACTIVITIES: Activity[] = [
       ruleSummary: '每月逢2发班 (2/12/22日)',
     },
     departureDates: [
+      { date: '2026-08-22', remainingSlots: 2, largePrice: 3580, smallPrice: 4980, singleSupplement: 880, status: 'few', tag: '处暑品茗' },
       { date: '2026-09-02', remainingSlots: 4, largePrice: 3580, smallPrice: 4980, singleSupplement: 880, status: 'guaranteed', tag: '岩茶雅集' },
       { date: '2026-09-12', remainingSlots: 5, largePrice: 3580, smallPrice: 4980, singleSupplement: 880, status: 'available', tag: '茶山秋爽' },
       { date: '2026-09-22', remainingSlots: 6, largePrice: 3580, smallPrice: 4980, singleSupplement: 880, status: 'available', tag: '秋分品茗' },
@@ -975,6 +980,7 @@ export const MOCK_ACTIVITIES: Activity[] = [
       ruleSummary: '每月逢6发班 (6/16/26日)',
     },
     departureDates: [
+      { date: '2026-08-26', remainingSlots: 2, largePrice: 4980, smallPrice: 7280, singleSupplement: 1300, status: 'few', tag: '盛夏研学' },
       { date: '2026-09-06', remainingSlots: 4, largePrice: 4980, smallPrice: 7280, singleSupplement: 1300, status: 'guaranteed', tag: '陕历博专场' },
       { date: '2026-09-16', remainingSlots: 5, largePrice: 4980, smallPrice: 7280, singleSupplement: 1300, status: 'available', tag: '终南琴韵' },
       { date: '2026-09-26', remainingSlots: 6, largePrice: 4980, smallPrice: 7280, singleSupplement: 1300, status: 'available', tag: '盛唐气象' },

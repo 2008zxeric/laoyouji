@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Award, Calendar, Phone, Star, ShieldCheck, Sparkles, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Award, Calendar, Phone, Star, ShieldCheck, Sparkles, Check, Eye } from 'lucide-react';
 import type { Tgo } from '../../api/gateway';
 
 export const TgoAdminPanel: React.FC = () => {
-  const { tgos, setTgos, showToast } = useApp();
+  const { tgos, setTgos, setSelectedTgo, showToast } = useApp();
   const [editing, setEditing] = useState<Tgo | null>(null);
 
   const handleDelete = (id: string, name: string) => {
@@ -111,19 +111,30 @@ export const TgoAdminPanel: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
               <button
-                onClick={() => setEditing({ ...t })}
-                className="px-3 py-1 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
+                onClick={() => setSelectedTgo(t)}
+                className="px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#2C3E50] border border-slate-300 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                title="查看TGO详细档案、历史带队活动与排期"
               >
-                编辑档案
+                <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>档案与排期详情</span>
               </button>
-              <button
-                onClick={() => handleDelete(t.id, t.name)}
-                className="p-1 text-rose-500 hover:text-rose-700 cursor-pointer"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setEditing({ ...t })}
+                  className="px-2.5 py-1 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs cursor-pointer"
+                >
+                  编辑
+                </button>
+                <button
+                  onClick={() => handleDelete(t.id, t.name)}
+                  className="p-1 text-rose-500 hover:text-rose-700 cursor-pointer"
+                  title="删除档案"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         ))}

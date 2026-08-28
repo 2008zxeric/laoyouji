@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { SmartItineraryManager } from './SmartItineraryManager';
 import { MyItineraryTimelineView } from './MyItineraryTimelineView';
+import { AiSlowTravelPlanner } from './AiSlowTravelPlanner';
 import {
   Bot,
   Send,
@@ -39,7 +40,7 @@ import { Activity, TournamentEvent } from '../types';
 
 interface ActionButtonDef {
   text: string;
-  actionType: 'open_booking' | 'open_activity_detail' | 'open_event_detail' | 'switch_to_itinerary' | 'switch_to_activities' | 'switch_to_events';
+  actionType: 'open_booking' | 'open_activity_detail' | 'open_event_detail' | 'switch_to_itinerary' | 'switch_to_activities' | 'switch_to_events' | 'switch_to_planner';
   targetId?: string;
   targetType?: 'activity' | 'event';
 }
@@ -69,6 +70,7 @@ interface ChatMessage {
     actionButton?: ActionButtonDef;
   };
   matchedCards?: MatchedCardDef[];
+  actions?: ActionButtonDef[];
 }
 
 export const AiConciergeView: React.FC = () => {
@@ -86,8 +88,8 @@ export const AiConciergeView: React.FC = () => {
     isLargeFont,
   } = useApp();
 
-  // Mode: 'my_itinerary' | 'smart_recommendations' | 'chat'
-  const [activeSubTab, setActiveSubTab] = useState<'my_itinerary' | 'smart_recommendations' | 'chat'>('chat');
+  // Mode: 'planner' | 'chat' | 'my_itinerary' | 'smart_recommendations'
+  const [activeSubTab, setActiveSubTab] = useState<'planner' | 'chat' | 'my_itinerary' | 'smart_recommendations'>('planner');
 
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -118,13 +120,33 @@ export const AiConciergeView: React.FC = () => {
     {
       id: 'msg-1',
       sender: 'ai',
-      text: `赵教授，您好！我是您的AI专属伴游管家“小老友”。\n\n已为您开启【语音语义查询】服务！您可直接长按或点击下方大号麦克风，说出：\n• 🎙️ “我下周有哪些研学活动？”\n• 🎙️ “帮我预定一场近期的高端讲座”\n• 🎙️ “查查我的积分与免单房差特权”\n\n小老友不仅为您耐心解答，还会为您自动匹配并直接唤起预订与日程！`,
-      spokenText: `赵教授您好！我是您的AI伴游管家小老友。您现在可以直接语音对我说，我下周有哪些研学活动，或者帮我预定一场近期的高端讲座，小老友随时为您服务！`,
+      text: `赵教授，您好！我是您的AI专属伴游管家“小老友”。\n\n已为您开启【语音语义查询与3日慢游定制】服务！您可直接长按或点击下方大号麦克风，说出：\n• 🎙️ “帮我规划一份3天苏州园林慢游行程”\n• 🎙️ “我下周有哪些研学活动？”\n• 🎙️ “帮我预定一场近期的高端讲座”\n• 🎙️ “查查我的积分与免单房差特权”\n\n小老友不仅为您耐心解答，还会为您自动生成适老5星慢游计划并直接唤起预订与日程！`,
+      spokenText: `赵教授您好！我是您的AI伴游管家小老友。您现在可以直接语音对我说，帮我规划一份3天苏州园林慢游行程，或者我下周有哪些研学活动，小老友随时为您服务！`,
       time: '刚才',
+      actions: [
+        {
+          text: '✨ 体验 3 日慢游定制规划',
+          actionType: 'switch_to_planner',
+        },
+        {
+          text: '📅 查看我的行程时间轴',
+          actionType: 'switch_to_itinerary',
+        },
+      ],
     },
   ]);
 
   const voicePresetPrompts = [
+    {
+      label: '✨ 帮我规划3天苏州园林慢游',
+      query: '请帮我规划一份3天苏州园林慢游行程，要求日均步数在4000步以内，下午有2小时午休，随团有急救医护保障',
+      desc: 'AI 自动生成适老五星慢游研学行程',
+    },
+    {
+      label: '✨ 定制3天黄山徽州温泉慢养',
+      query: '请帮我定制一份3天黄山徽州古村与温泉养生行程，少爬台阶，餐饮少盐低糖',
+      desc: '道医温泉理疗与徽州名家导赏',
+    },
     {
       label: '🎙️ 我下周有哪些研学活动？',
       query: '我下周有哪些研学活动？',
@@ -136,12 +158,12 @@ export const AiConciergeView: React.FC = () => {
       desc: '智能匹配国家级学者特窟研学',
     },
     {
-      label: '🎙️ 查查我的积分与免单房差特权',
+      label: '🎙️ 查查我的积分与免单特权',
       query: '查查我的会员积分与免单房差特权怎么使用',
       desc: '名仕会员权益与商城抵扣规则',
     },
     {
-      label: '🎙️ 推荐适合高血压每天4000步的路线',
+      label: '🎙️ 推荐适合高血压每天4000步路线',
       query: '请推荐适合轻微高血压、平时每天散步4000步的慢节奏路线',
       desc: '适老五星与随团医护保障',
     },
@@ -414,7 +436,10 @@ export const AiConciergeView: React.FC = () => {
 
   // Action Dispatcher for Semantic Buttons
   const handleExecuteAction = (actionBtn: ActionButtonDef) => {
-    if (actionBtn.actionType === 'switch_to_itinerary') {
+    if (actionBtn.actionType === 'switch_to_planner') {
+      setActiveSubTab('planner');
+      showToast('已为您切换至【AI 3日慢游定制规划】');
+    } else if (actionBtn.actionType === 'switch_to_itinerary') {
       setActiveSubTab('my_itinerary');
       showToast('已为您切换至【我的行程规划与手机日历】');
     } else if (actionBtn.actionType === 'open_booking') {
@@ -516,6 +541,22 @@ export const AiConciergeView: React.FC = () => {
           </button>
 
           <div className="flex items-center bg-stone-900/80 p-1 rounded-2xl border border-stone-700">
+            {/* TAB 0: 3日慢游定制规划 (AI Slow-Travel Planner) */}
+            <button
+              onClick={() => setActiveSubTab('planner')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                activeSubTab === 'planner'
+                  ? 'bg-gradient-to-r from-[#D4AF37] to-[#B8843E] text-stone-950 shadow-sm'
+                  : 'text-stone-300 hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>3日慢游规划</span>
+              <span className="text-[9px] bg-amber-900/60 text-amber-200 px-1.5 py-0.2 rounded-full font-sans">
+                AI定制
+              </span>
+            </button>
+
             {/* TAB 3: 伴游问答 (Chat & Voice Query) */}
             <button
               onClick={() => setActiveSubTab('chat')}
@@ -570,7 +611,15 @@ export const AiConciergeView: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      {activeSubTab === 'my_itinerary' ? (
+      {activeSubTab === 'planner' ? (
+        /* TAB 0: AI 3-Day Slow-Travel Custom Planner */
+        <div className="flex-1 overflow-hidden">
+          <AiSlowTravelPlanner
+            onAskAiAboutPlan={handleAskAboutPlan}
+            onPlanSaved={() => setActiveSubTab('my_itinerary')}
+          />
+        </div>
+      ) : activeSubTab === 'my_itinerary' ? (
         /* TAB 1: My Itinerary Timeline & Calendar Sync */
         <div className="flex-1 overflow-hidden">
           <MyItineraryTimelineView

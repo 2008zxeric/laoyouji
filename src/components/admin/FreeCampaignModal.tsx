@@ -27,7 +27,7 @@ export const FreeCampaignModal: React.FC<FreeCampaignModalProps> = ({
   const [endDate, setEndDate] = useState<string>(initialCampaign?.endDate || '2026-12-31');
 
   // Member Scope
-  const [memberScope, setMemberScope] = useState<'all' | 'specific_tiers' | 'custom_list'>(
+  const [memberScope, setMemberScope] = useState<'all' | 'specific_tiers' | 'selected_members'>(
     initialCampaign?.memberScope || 'all'
   );
   const [selectedTiers, setSelectedTiers] = useState<(string | number)[]>(
@@ -210,9 +210,9 @@ export const FreeCampaignModal: React.FC<FreeCampaignModalProps> = ({
 
               <button
                 type="button"
-                onClick={() => setMemberScope('custom_list')}
+                onClick={() => setMemberScope('selected_members')}
                 className={`py-2 px-3 rounded-xl font-bold border transition-all cursor-pointer ${
-                  memberScope === 'custom_list'
+                  memberScope === 'selected_members'
                     ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                 }`}

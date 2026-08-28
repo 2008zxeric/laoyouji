@@ -30,8 +30,11 @@ export const HomeView: React.FC = () => {
   const {
     activities,
     events,
+    tgos,
     setSelectedActivity,
     setSelectedEvent,
+    setIsTgoListOpen,
+    setSelectedTgo,
     openBooking,
     openPoster,
     toggleFavorite,
@@ -315,12 +318,12 @@ export const HomeView: React.FC = () => {
           },
           {
             title: '伴游管家',
-            subtitle: '语音出行答疑',
-            icon: Bot,
-            action: () => setActiveTab('ai'),
-            color: 'from-indigo-500/10 to-indigo-600/20 text-[#2C3E50]',
-            border: 'border-indigo-300/60',
-            badge: '智能',
+            subtitle: '金牌伴游库',
+            icon: Award,
+            action: () => setIsTgoListOpen(true),
+            color: 'from-amber-500/10 to-amber-600/20 text-[#2C3E50]',
+            border: 'border-amber-300/60',
+            badge: '名师',
           },
         ].map((item, idx) => {
           const Icon = item.icon;
@@ -547,7 +550,7 @@ export const HomeView: React.FC = () => {
                   </div>
 
                   <div className="absolute top-3 right-3 bg-[#2C3E50]/90 backdrop-blur-md text-[#D4AF37] text-xs font-bold px-2.5 py-1 rounded-full border border-[#D4AF37]/30">
-                    总奖池 {evt.prizePool.points.toLocaleString()} 积分
+                    总奖池 {(evt.prizePool?.points || 50000).toLocaleString()} 积分
                   </div>
 
                   <div className="absolute bottom-2.5 left-3 right-3 text-white">
@@ -599,78 +602,72 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Scholars & Masters Hall of Fame */}
+      {/* 6. Scholars & Certified TGO Companions */}
       <section className="bg-[#2C3E50] rounded-3xl p-4 md:p-5 text-[#FAF9F6] border border-[#D4AF37]/30 shadow-md space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-stone-950 flex items-center justify-center font-serif font-bold text-sm">
-              师
+              管
             </div>
             <div>
               <h2 className="font-serif italic font-bold text-base md:text-lg text-[#FAF9F6]">
-                名师大家 · 随行知音
+                金牌 TGO 伴游管家 · 如侍父母
               </h2>
               <p className="text-[11px] text-[#D4AF37]/90 font-sans">
-                高校博导 · 国家一级演员 · 文博资深研究员
+                特聘国家研学导师 · 红十字急救双认证 · 全程慢步慢语
               </p>
             </div>
           </div>
           <button
-            onClick={() => setActiveTab('activities')}
-            className="text-xs text-[#D4AF37] hover:underline flex items-center gap-0.5"
+            onClick={() => setIsTgoListOpen(true)}
+            className="text-xs text-[#D4AF37] hover:underline flex items-center gap-0.5 cursor-pointer font-semibold"
           >
-            <span>看名师行程</span>
+            <span>全部 {tgos.length} 位管家</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            {
-              name: '钱仲祥 教授',
-              title: '苏州大学建筑学院特聘教授 / 园林文脉学者',
-              badge: '江南园林泰斗',
-              avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-              intro: '主讲《拙政园的造园美学与古人精神山水》，带您晨光包场独享古意。',
-            },
-            {
-              name: '杜秋霞 老师',
-              title: '国家一级演员 / 中国戏剧梅花奖得主',
-              badge: '昆曲闺门旦名家',
-              avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
-              intro: '私享耦园闭馆夜游评弹雅集，亲授水磨调工尺谱与台步意韵。',
-            },
-            {
-              name: '严明达 裁判长',
-              title: '国家级棋牌裁判长 / 全国掼蛋大师赛总策划',
-              badge: '金牌裁判长',
-              avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
-              intro: '现场主裁与十六强战术复盘，剖析掼蛋配合兵法与逆风破局。',
-            },
-          ].map((master, i) => (
+          {tgos.slice(0, 3).map((t) => (
             <div
-              key={i}
-              className="bg-white/5 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 flex flex-col justify-between space-y-2.5"
+              key={t.id}
+              onClick={() => setSelectedTgo(t)}
+              className="bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 hover:border-[#D4AF37]/60 transition-all cursor-pointer flex flex-col justify-between space-y-2.5 group"
             >
               <div className="flex items-center gap-3">
-                <img
-                  src={master.avatar}
-                  alt={master.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#D4AF37]"
-                />
+                <div className="relative">
+                  <img
+                    src={t.avatar}
+                    alt={t.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 shadow-xs"
+                    style={{ borderColor: t.color || '#D4AF37' }}
+                  />
+                  <span className="absolute -bottom-1 -right-1 bg-[#D4AF37] text-stone-950 text-[9px] px-1 py-0.2 rounded-full font-bold shadow-2xs">
+                    {t.badge || (t.tier === 'gold' ? '金牌' : '资深')}
+                  </span>
+                </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-serif font-bold text-sm text-[#FAF9F6]">{master.name}</span>
-                    <span className="text-[9px] bg-[#D4AF37] text-stone-950 px-1.5 py-0.2 rounded font-bold">
-                      {master.badge}
+                    <span className="font-serif font-bold text-sm text-[#FAF9F6] group-hover:text-[#D4AF37] transition-colors">
+                      {t.name}
+                    </span>
+                    <span className="text-[9px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-1.5 py-0.2 rounded font-bold">
+                      {t.tier === 'gold' ? '金旅伴' : '银旅伴'}
                     </span>
                   </div>
-                  <p className="text-[10px] text-stone-300 line-clamp-1">{master.title}</p>
+                  <p className="text-[10px] text-stone-300 line-clamp-1 mt-0.5">{t.title}</p>
                 </div>
               </div>
               <p className="text-xs text-stone-200 line-clamp-2 font-light leading-relaxed">
-                {master.intro}
+                "{t.motto || '慢游随心，如侍父母，细心照护每一位老友。'}"
               </p>
+              <div className="flex items-center justify-between text-[10px] text-amber-200/90 pt-1 border-t border-white/10">
+                <span>带团 {t.trips || 12}+ 场 · 评分 5.0</span>
+                <span className="text-[#D4AF37] font-bold group-hover:underline flex items-center gap-0.5">
+                  <span>查看排期与预约</span>
+                  <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
             </div>
           ))}
         </div>

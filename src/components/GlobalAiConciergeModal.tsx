@@ -413,11 +413,13 @@ export const GlobalAiConciergeModal: React.FC = () => {
                   小老友 · 乐龄智能伴游
                 </h3>
                 <span className="bg-[#D4AF37] text-stone-950 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  24h 在线
+                  文旅专属 AI
                 </span>
               </div>
-              <p className="text-[11px] text-stone-300">
-                服务于 {userProfile.name || '赵教授'} · {currentTier.name}
+              <p className="text-[11px] text-amber-200/90 flex items-center gap-1.5">
+                <span>服务于 {userProfile.name || '赵教授'} · {currentTier.name}</span>
+                <span>·</span>
+                <span className="text-[10px] text-stone-300">专注本站研学/赛事/适老健康</span>
               </p>
             </div>
           </div>

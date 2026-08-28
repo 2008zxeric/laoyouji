@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Activity, GroupType } from '../types';
 import { useApp } from '../context/AppContext';
 import { DEFAULT_TGO_PROFILE, DEFAULT_FEE_EXCLUDES, DEFAULT_BOOKING_NOTICES } from '../data/mockData';
+import { ActivityRouteMap } from './ActivityRouteMap';
 import {
   X,
   Heart,
@@ -30,6 +31,11 @@ import {
   HeartHandshake,
   Stethoscope,
   Compass,
+  Volume2,
+  VolumeX,
+  Send,
+  HelpCircle,
+  Map,
 } from 'lucide-react';
 
 interface ActivityDetailModalProps {
@@ -41,23 +47,143 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   activity,
   onClose,
 }) => {
-  const { toggleFavorite, isFavorited, openPoster, openBooking, setActiveTab, openWriteReview } = useApp();
-  const isFav = isFavorited(activity.id);
+  const { toggleFavorite, isFavorited, openPoster, openBooking, setActiveTab, openWriteReview, userProfile, showToast } = useApp();
+  const isFav = isFavorited(activity?.id || '');
 
   // Group Type Selection (大团 vs 拼小团)
   const [selectedGroupType, setSelectedGroupType] = useState<GroupType>('small');
   // Selected Departure Date
   const [selectedDateIndex, setSelectedDateIndex] = useState<number>(0);
   // Active Tab within Detail Page
-  const [detailTab, setDetailTab] = useState<'itinerary' | 'fees' | 'notices' | 'tgo_master' | 'reviews'>('itinerary');
+  const [detailTab, setDetailTab] = useState<'itinerary' | 'route_map' | 'fees' | 'notices' | 'tgo_master' | 'reviews'>('itinerary');
 
-  const currentDateObj = activity.departureDates[selectedDateIndex] || activity.departureDates[0];
-  const displayPrice = selectedGroupType === 'large' ? currentDateObj.largePrice : currentDateObj.smallPrice;
-  const currentGroupInfo = selectedGroupType === 'large' ? activity.group : activity.premium;
+  // AI Activity Senior QA States
+  const [aiQuestion, setAiQuestion] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiAnswer, setAiAnswer] = useState<{
+    answer: string;
+    spokenText?: string;
+    suitabilityScore?: number;
+    comfortTips?: string[];
+  } | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  if (!activity) return null;
+
+  const departureDatesList = activity.departureDates && activity.departureDates.length > 0
+    ? activity.departureDates
+    : [{ date: '2026-09-12', largePrice: activity.priceGroup || 3680, smallPrice: activity.pricePremium || 5680, remainingSlots: 4, label: '首发名仕团' }];
+
+  const currentDateObj = departureDatesList[selectedDateIndex] || departureDatesList[0];
+  const displayPrice = selectedGroupType === 'large' ? (currentDateObj.largePrice || activity.priceGroup || 3680) : (currentDateObj.smallPrice || activity.pricePremium || 5680);
+  const currentGroupInfo = selectedGroupType === 'large'
+    ? (activity.group || { size: '20-30人经典文化大团', features: ['2+1航空座椅头等舱大巴', '八菜一汤养生分餐', '五星级适老静音酒店'], coach: '2+1航空座椅头等舱大巴', hotelType: '五星级适老静音酒店' })
+    : (activity.premium || { size: '6-12人名仕私享小团', features: ['丰田埃尔法/奔驰商务专车', '私房名厨定制膳食', '文化野奢/温泉私汤酒店'], coach: '丰田埃尔法/奔驰商务专车', hotelType: '文化野奢/温泉私汤酒店' });
 
   const tgo = activity.tgo || DEFAULT_TGO_PROFILE;
+  const masterInfo = activity.master || {
+    name: '特邀文史名师',
+    title: '文博研学特聘专家',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    intro: '深耕文脉历史数十载，全程以通俗博雅之语随行解读。',
+  };
+  const feeIncludesList = activity.feeIncludes && activity.feeIncludes.length > 0
+    ? activity.feeIncludes
+    : [
+        { category: '尊享交通', detail: '行程所列适老头等舱大巴及专车接驳，舒适平稳' },
+        { category: '五星住宿', detail: '全程甄选五星级适老静音双床房（含双人营养早餐）' },
+        { category: '地道珍馐', detail: '全程含特色正餐，少油少盐软烂可口，讲究养生分餐' },
+        { category: '闭馆私享', detail: '行程内所有重点文物古迹特邀讲解与独家闭馆门票全包' },
+      ];
   const feeExcludesList = activity.feeExcludes && activity.feeExcludes.length > 0 ? activity.feeExcludes : DEFAULT_FEE_EXCLUDES;
   const noticeList = activity.notice && activity.notice.length > 0 ? activity.notice : DEFAULT_BOOKING_NOTICES;
+  const packingTipsList = activity.packingTips && activity.packingTips.length > 0
+    ? activity.packingTips
+    : [
+        '身份证、老年优待证原件（用于享受景区门票现退优惠）',
+        '随身携带常备慢性病药品（降压药、降糖药等）及医保卡',
+        '舒适防滑软底健步鞋、遮阳帽、轻便保温水杯',
+        '早晚温差较大，建议携带防风保暖开衫外套',
+      ];
+  const itineraryList = activity.itinerary && activity.itinerary.length > 0 ? activity.itinerary : [];
+
+  const quickAiQuestions = [
+    { label: '🩺 高血压/慢病适合去吗？', q: '请问有轻度高血压或关节不适的长辈适合参加这趟行程吗？随团有何医疗保障？' },
+    { label: '👣 每日走多少步？坡度如何？', q: '请问本行程每天预计走多少步？有无爬坡陡阶？车程时长多久？' },
+    { label: '🍵 餐饮清淡吗？有何忌口安排？', q: '餐饮是否少油低盐软烂？有糖尿病或忌口可以单独安排分餐吗？' },
+    { label: '🎒 行前必备证件与衣物建议', q: '针对该目的地与季节，长辈行前需要带什么特殊衣物、证件和药品？' },
+  ];
+
+  const handleAskAi = async (customQ?: string) => {
+    const q = (customQ || aiQuestion).trim();
+    if (!q || aiLoading) return;
+
+    setAiLoading(true);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+
+    try {
+      const res = await fetch('/api/ai-activity-qa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemTitle: activity.title,
+          destination: activity.destination || '文化名城',
+          durationDays: activity.durationDays || 5,
+          fitnessDesc: activity.fitnessDesc || '步道平缓，适老慢行',
+          masterName: masterInfo.name,
+          tgoName: tgo.name,
+          question: q,
+          userProfile,
+          isEvent: false,
+        }),
+      });
+
+      if (!res.ok) throw new Error('网络异常');
+      const data = await res.json();
+      setAiAnswer({
+        answer: data.answer,
+        spokenText: data.spokenText,
+        suitabilityScore: data.suitabilityScore || 95,
+        comfortTips: data.comfortTips,
+      });
+      setAiQuestion('');
+    } catch {
+      setAiAnswer({
+        answer: `尊敬的${userProfile.name || '老友'}，本行程《${activity.title}》日均步数约 3,800 步，全程配有持证急救护士与便携 AED，餐饮低盐少油，步道平缓舒适，非常适合乐龄长辈！`,
+        spokenText: `本行程步道平缓，全程配备持证急救护士和AED，餐饮清淡，非常适合长辈出行！`,
+        suitabilityScore: 95,
+        comfortTips: ['随身携带常备慢病药品', '穿着防滑健步软底鞋'],
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const speakAiText = (text: string) => {
+    if (!('speechSynthesis' in window)) {
+      showToast('当前浏览器暂不支持语音播报');
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/[*#_`~]/g, '').replace(/\n+/g, '，');
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = 'zh-CN';
+    u.rate = 0.88;
+    u.onstart = () => setIsSpeaking(true);
+    u.onend = () => setIsSpeaking(false);
+    u.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(u);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex justify-center items-center p-0 sm:p-3 md:p-4 animate-fadeIn">
@@ -248,7 +374,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               </span>
               <span className="text-xs text-stone-500 flex items-center gap-1">
                 <BedDouble className="w-3.5 h-3.5 text-stone-400" />
-                <span>单房差 ¥{currentDateObj.singleSupplement}/人</span>
+                <span>单房差 ¥{(currentDateObj as any).singleSupplement || activity.singleSupplement || 680}/人</span>
               </span>
             </div>
 
@@ -393,11 +519,122 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
             </div>
           )}
 
-          {/* Section Tabs (每日行程 / 费用包含与不含 / 报名须知与注意事项 / 领队与保障 / 真实老友评价) */}
-          <div className="sticky top-0 z-20 bg-white border-b border-stone-200 flex text-xs md:text-sm font-semibold text-stone-600 shadow-2xs">
+          {/* AI SENIOR ITINERARY ADVISOR (小老友 · 适老行程专属问答) */}
+          <div className="p-4 bg-gradient-to-br from-amber-50/80 via-white to-stone-50 border-b border-[#EAE6DF] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#2C3E50] text-[#D4AF37] flex items-center justify-center border border-[#D4AF37]/30 shadow-2xs">
+                  <Bot className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-serif font-bold text-xs md:text-sm text-[#2C3E50] flex items-center gap-1.5">
+                    <span>小老友 · 适老行程与健康顾问</span>
+                    <span className="bg-[#D4AF37]/20 text-[#85660d] text-[10px] px-2 py-0.5 rounded-full font-sans font-bold">
+                      智能适老分析
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-stone-500">
+                    针对长辈体能、用药、步道与餐饮，一键快速答疑
+                  </div>
+                </div>
+              </div>
+
+              {aiAnswer?.suitabilityScore && (
+                <div className="text-right shrink-0">
+                  <div className="text-[10px] text-stone-500">综合契合度</div>
+                  <div className="font-serif font-bold text-sm text-emerald-700">
+                    {aiAnswer.suitabilityScore}% 适老
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick 1-Click Elder Questions */}
+            <div className="flex flex-wrap gap-1.5">
+              {quickAiQuestions.map((qItem, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleAskAi(qItem.q)}
+                  disabled={aiLoading}
+                  className="bg-white hover:bg-amber-50 text-stone-700 hover:text-[#2C3E50] text-xs px-2.5 py-1.5 rounded-xl border border-stone-200 hover:border-[#D4AF37]/60 shadow-2xs transition-all flex items-center gap-1 active:scale-95 cursor-pointer disabled:opacity-50"
+                >
+                  <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                  <span>{qItem.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* AI Answer Box */}
+            {aiLoading ? (
+              <div className="bg-white rounded-2xl p-3.5 border border-amber-200/80 shadow-2xs flex items-center gap-2 text-xs text-stone-600 animate-pulse">
+                <Bot className="w-4 h-4 text-[#D4AF37] animate-bounce" />
+                <span className="font-medium">小老友正在结合您的健康档案分析本行程适老要素...</span>
+              </div>
+            ) : aiAnswer ? (
+              <div className="bg-white rounded-2xl p-3.5 border border-amber-200/80 shadow-xs space-y-2 animate-fadeIn">
+                <div className="text-xs text-stone-800 leading-relaxed whitespace-pre-wrap">
+                  {aiAnswer.answer}
+                </div>
+
+                {aiAnswer.comfortTips && aiAnswer.comfortTips.length > 0 && (
+                  <div className="pt-2 border-t border-stone-100 flex flex-wrap gap-1.5">
+                    {aiAnswer.comfortTips.map((tip, idx) => (
+                      <span
+                        key={idx}
+                        className="bg-emerald-50 text-emerald-800 text-[10px] px-2 py-0.5 rounded-md border border-emerald-200 font-medium"
+                      >
+                        ✓ {tip}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-1 text-[11px] text-stone-400">
+                  <span>AI 适老研学保障 · 仅供参考</span>
+                  {aiAnswer.spokenText && (
+                    <button
+                      onClick={() => speakAiText(aiAnswer.spokenText!)}
+                      className="text-[#85660d] hover:text-[#5c4609] font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Volume2 className="w-3.5 h-3.5" />
+                      <span>{isSpeaking ? '停止朗读' : '慢速朗读给长辈'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Custom Input for Any Detail */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAskAi();
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+                placeholder="还想了解什么？如：能否提供低糖餐？有无轮椅借用？"
+                className="flex-1 px-3 py-2 bg-white rounded-xl border border-stone-200 text-xs focus:outline-none focus:border-[#2C3E50]"
+              />
+              <button
+                type="submit"
+                disabled={!aiQuestion.trim() || aiLoading}
+                className="px-3 py-2 bg-[#2C3E50] hover:bg-[#1a252f] disabled:opacity-40 text-[#D4AF37] text-xs font-bold rounded-xl flex items-center gap-1 shadow-2xs cursor-pointer transition-transform active:scale-95"
+              >
+                <Send className="w-3 h-3" />
+                <span>提问</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Section Tabs (每日行程 / 研学路径地图 / 费用包含与不含 / 报名须知与注意事项 / 领队与保障 / 真实老友评价) */}
+          <div className="sticky top-0 z-20 bg-white border-b border-stone-200 flex text-xs md:text-sm font-semibold text-stone-600 shadow-2xs overflow-x-auto no-scrollbar">
             <button
               onClick={() => setDetailTab('itinerary')}
-              className={`flex-1 py-3 text-center border-b-2 transition-colors cursor-pointer ${
+              className={`flex-1 min-w-[72px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                 detailTab === 'itinerary'
                   ? 'border-[#2C3E50] text-[#2C3E50] font-bold bg-[#FAF9F6]/60'
                   : 'border-transparent hover:text-stone-900'
@@ -406,18 +643,29 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               每日行程
             </button>
             <button
+              onClick={() => setDetailTab('route_map')}
+              className={`flex-1 min-w-[84px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-1 ${
+                detailTab === 'route_map'
+                  ? 'border-[#2C3E50] text-[#2C3E50] font-bold bg-[#FAF9F6]/60'
+                  : 'border-transparent hover:text-stone-900'
+              }`}
+            >
+              <Map className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>路径地图</span>
+            </button>
+            <button
               onClick={() => setDetailTab('fees')}
-              className={`flex-1 py-3 text-center border-b-2 transition-colors cursor-pointer ${
+              className={`flex-1 min-w-[84px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                 detailTab === 'fees'
                   ? 'border-[#2C3E50] text-[#2C3E50] font-bold bg-[#FAF9F6]/60'
                   : 'border-transparent hover:text-stone-900'
               }`}
             >
-              费用包含/不含
+              费用说明
             </button>
             <button
               onClick={() => setDetailTab('notices')}
-              className={`flex-1 py-3 text-center border-b-2 transition-colors cursor-pointer ${
+              className={`flex-1 min-w-[72px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                 detailTab === 'notices'
                   ? 'border-[#2C3E50] text-[#2C3E50] font-bold bg-[#FAF9F6]/60'
                   : 'border-transparent hover:text-stone-900'
@@ -427,7 +675,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
             </button>
             <button
               onClick={() => setDetailTab('tgo_master')}
-              className={`flex-1 py-3 text-center border-b-2 transition-colors cursor-pointer ${
+              className={`flex-1 min-w-[72px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                 detailTab === 'tgo_master'
                   ? 'border-[#2C3E50] text-[#2C3E50] font-bold bg-[#FAF9F6]/60'
                   : 'border-transparent hover:text-stone-900'
@@ -437,22 +685,47 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
             </button>
             <button
               onClick={() => setDetailTab('reviews')}
-              className={`flex-1 py-3 text-center border-b-2 transition-colors cursor-pointer ${
+              className={`flex-1 min-w-[72px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                 detailTab === 'reviews'
                   ? 'border-[#2C3E50] text-[#2C3E50] font-bold bg-[#FAF9F6]/60'
                   : 'border-transparent hover:text-stone-900'
               }`}
             >
-              评价({activity.reviewsCount})
+              评价({activity.reviewsCount || (activity.reviews ? activity.reviews.length : 0)})
             </button>
           </div>
 
           {/* TAB CONTENT SECTIONS */}
           <div className="p-4 space-y-6">
 
+            {/* TAB: ROUTE MAP VISUALIZATION (路径地图专属全景视图) */}
+            {detailTab === 'route_map' && (
+              <div className="space-y-4">
+                <ActivityRouteMap activity={activity} />
+              </div>
+            )}
+
             {/* TAB 1: ITINERARY (每日慢步行程) */}
             {detailTab === 'itinerary' && (
               <div className="space-y-5">
+                {/* Embed Pathway Visualizer at top of Itinerary tab as well */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#2C3E50] flex items-center gap-1.5">
+                      <Map className="w-4 h-4 text-[#D4AF37]" />
+                      <span>研学地理全景路径</span>
+                    </span>
+                    <button
+                      onClick={() => setDetailTab('route_map')}
+                      className="text-xs text-[#85660d] hover:text-[#5c4609] font-semibold flex items-center gap-0.5 cursor-pointer"
+                    >
+                      <span>展开大图与海拔剖面</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <ActivityRouteMap activity={activity} />
+                </div>
+
                 <div className="bg-[#FAF9F6] rounded-2xl p-3.5 border border-[#EAE6DF] text-xs text-stone-700 flex items-center justify-between shadow-2xs">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-[#2C3E50]" />
@@ -461,7 +734,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                   <span className="text-[#85660d] font-semibold">适老平缓 · 无催促</span>
                 </div>
 
-                {activity.itinerary.map((day) => (
+                {itineraryList.map((day) => (
                   <div
                     key={day.day}
                     className="bg-white rounded-2xl p-4 border border-[#EAE6DF] shadow-xs space-y-3 relative"
@@ -481,7 +754,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                       </div>
 
                       <span className="bg-[#FAF9F6] text-[#2C3E50] text-[11px] font-medium px-2.5 py-0.5 rounded-full border border-[#EAE6DF]">
-                        👣 {day.stepsEstimated}
+                        👣 {day.stepsEstimated || '3,500 步'}
                       </span>
                     </div>
 
@@ -512,12 +785,14 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                       <div className="flex items-center text-stone-600 gap-1.5">
                         <span className="font-medium text-stone-800 shrink-0">🥢 膳食安排：</span>
                         <span className="text-stone-600 truncate">
-                          早: {day.dining.breakfast} | 午: {day.dining.lunch} | 晚: {day.dining.dinner}
+                          {typeof day.dining === 'object'
+                            ? `早: ${day.dining.breakfast} | 午: ${day.dining.lunch} | 晚: ${day.dining.dinner}`
+                            : String(day.dining || '精选全包适老膳食')}
                         </span>
                       </div>
                       <div className="flex items-center text-stone-600 gap-1.5">
                         <span className="font-medium text-stone-800 shrink-0">🏨 甄选入住：</span>
-                        <span className="text-[#2C3E50] font-semibold truncate">{day.hotel}</span>
+                        <span className="text-[#2C3E50] font-semibold truncate">{day.hotel || '五星级适老静音酒店'}</span>
                       </div>
                       {day.tips && (
                         <div className="text-[11px] text-[#85660d] bg-[#D4AF37]/10 rounded p-1.5 mt-1 border border-[#D4AF37]/20">
@@ -541,12 +816,12 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                       <span>费用包含（品质慢游·一价全包）</span>
                     </div>
                     <span className="text-[11px] text-emerald-700 bg-emerald-50 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
-                      9大品质保障
+                      品质保障
                     </span>
                   </div>
 
                   <div className="space-y-3">
-                    {activity.feeIncludes.map((inc, i) => (
+                    {feeIncludesList.map((inc, i) => (
                       <div key={i} className="flex items-start text-xs space-x-2.5 p-2 rounded-xl bg-stone-50/70 border border-stone-100">
                         <span className="bg-[#2C3E50] text-[#D4AF37] font-bold px-2 py-0.5 rounded shrink-0 shadow-2xs">
                           {inc.category}
@@ -636,7 +911,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                     <span>行前贴心准备建议与注意事项</span>
                   </div>
                   <div className="space-y-2 text-xs text-stone-700">
-                    {activity.packingTips.map((tip, i) => (
+                    {packingTipsList.map((tip, i) => (
                       <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-stone-50/60">
                         <span className="text-[#D4AF37] font-bold text-sm leading-none">•</span>
                         <span className="leading-relaxed flex-1">{tip}</span>
@@ -731,27 +1006,25 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                   </div>
                 </div>
 
-                {/* Master profile if present */}
-                {activity.master && (
-                  <div className="bg-white rounded-2xl p-4 border border-[#EAE6DF] shadow-xs space-y-3">
-                    <div className="flex items-center gap-2 font-serif font-bold text-[#2C3E50] text-sm md:text-base border-b border-stone-100 pb-2">
-                      <Award className="w-4 h-4 text-[#D4AF37]" />
-                      <span>随团研学文化名师</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <img
-                        src={activity.master.avatar}
-                        alt={activity.master.name}
-                        className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0"
-                      />
-                      <div className="text-xs">
-                        <div className="font-bold text-stone-900 text-sm">{activity.master.name}</div>
-                        <div className="text-[#85660d] font-medium">{activity.master.title}</div>
-                        <p className="text-stone-600 mt-1 leading-relaxed">{activity.master.intro}</p>
-                      </div>
+                {/* Master profile */}
+                <div className="bg-white rounded-2xl p-4 border border-[#EAE6DF] shadow-xs space-y-3">
+                  <div className="flex items-center gap-2 font-serif font-bold text-[#2C3E50] text-sm md:text-base border-b border-stone-100 pb-2">
+                    <Award className="w-4 h-4 text-[#D4AF37]" />
+                    <span>随团研学文化名师</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <img
+                      src={masterInfo.avatar}
+                      alt={masterInfo.name}
+                      className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0"
+                    />
+                    <div className="text-xs">
+                      <div className="font-bold text-stone-900 text-sm">{masterInfo.name}</div>
+                      <div className="text-[#85660d] font-medium">{masterInfo.title}</div>
+                      <p className="text-stone-600 mt-1 leading-relaxed">{masterInfo.intro}</p>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
 
@@ -761,7 +1034,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                 <div className="bg-white rounded-2xl p-4 border border-[#EAE6DF] flex items-center justify-between shadow-2xs">
                   <div>
                     <div className="text-2xl font-serif italic font-bold text-[#2C3E50] flex items-baseline gap-1">
-                      <span>{activity.rating}</span>
+                      <span>{activity.rating || 5.0}</span>
                       <span className="text-xs text-stone-400 font-sans">/ 5.0 满分</span>
                     </div>
                     <div className="text-xs text-[#85660d] font-medium">99% 老友出游后推荐给好友</div>
@@ -769,7 +1042,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                   <div className="flex items-center gap-2">
                     <div className="text-xs text-stone-500 bg-[#FAF9F6] px-3 py-2 rounded-xl border border-[#EAE6DF] text-center hidden sm:block">
                       累计出行评价
-                      <div className="font-bold text-[#2C3E50]">{activity.reviewsCount} 条真切心声</div>
+                      <div className="font-bold text-[#2C3E50]">{activity.reviewsCount || (activity.reviews ? activity.reviews.length : 0)} 条真切心声</div>
                     </div>
                     <button
                       onClick={() => openWriteReview(activity)}
@@ -790,23 +1063,23 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2.5">
                           <img
-                            src={rev.avatar}
-                            alt={rev.author}
+                            src={rev.avatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80'}
+                            alt={rev.author || '知青老友'}
                             className="w-10 h-10 rounded-full object-cover border border-stone-200"
                           />
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-xs text-[#2C3E50]">{rev.author}</span>
+                              <span className="font-bold text-xs text-[#2C3E50]">{rev.author || '知青老友'}</span>
                               <span className="bg-[#D4AF37]/20 text-[#85660d] border border-[#D4AF37]/40 text-[10px] px-1.5 py-0.2 rounded font-medium">
-                                {rev.memberLevel}
+                                {rev.memberLevel || '名仕金卡'}
                               </span>
                             </div>
-                            <div className="text-[11px] text-stone-400">{rev.date} 出游点评</div>
+                            <div className="text-[11px] text-stone-400">{rev.date || '近期'} 出游点评</div>
                           </div>
                         </div>
 
                         <div className="flex text-[#D4AF37] text-xs">
-                          {'★'.repeat(rev.rating)}
+                          {'★'.repeat(rev.rating || 5)}
                         </div>
                       </div>
 
@@ -828,7 +1101,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                       <div className="flex items-center justify-end text-xs text-stone-500 space-x-1">
                         <button className="flex items-center gap-1 hover:text-rose-500 transition-colors cursor-pointer">
                           <ThumbsUp className="w-3.5 h-3.5" />
-                          <span>点赞 ({rev.likes})</span>
+                          <span>点赞 ({rev.likes || 12})</span>
                         </button>
                       </div>
                     </div>
