@@ -129,7 +129,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
   const [selectedThemes, setSelectedThemes] = useState<string[]>([
     '学者名师随团',
     '茶道文博雅集',
-    '适老五星慢住',
+    '乐龄五星慢住',
   ]);
   const [companion, setCompanion] = useState<string>('夫妻二人出行');
   const [healthNotes, setHealthNotes] = useState<string>(
@@ -202,7 +202,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
   const availableThemes = [
     { id: '学者名师随团', label: '🏛️ 学者名师特窟导赏' },
     { id: '茶道文博雅集', label: '🍵 名家茶席与非遗雅集' },
-    { id: '适老五星慢住', label: '🏨 适老五星养生度假' },
+    { id: '乐龄五星慢住', label: '🏨 乐龄五星养生度假' },
     { id: '道医温泉药膳', label: '🌿 道医温泉与药膳滋补' },
     { id: '乐龄棋牌交流', label: '🎴 乐龄棋牌好友切磋' },
     { id: '戏曲昆曲私享', label: '🎭 昆曲评弹私享雅座' },
@@ -257,7 +257,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
       }
     } catch (err) {
       console.warn('Generate itinerary error, using high quality preset:', err);
-      showToast('已为您载入适老五星 3 日慢游示范行程');
+      showToast('已为您载入乐龄五星 3 日慢游示范行程');
     } finally {
       setLoading(false);
     }
@@ -368,10 +368,10 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
             <div className="flex items-center gap-2">
               <span className="bg-gradient-to-r from-[#D4AF37] to-[#B8843E] text-stone-950 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>小老友 · AI 慢游定制引擎</span>
+                <span>小乐伴 · AI 慢游定制引擎</span>
               </span>
               <span className="text-[11px] text-amber-200/90 font-medium">
-                专为 50~75 岁长辈研发 · 适老五星慢节奏
+                专为 50~75 岁长辈研发 · 乐龄五星慢节奏
               </span>
             </div>
             <h2 className="text-lg md:text-2xl font-serif font-bold text-white tracking-wide">
@@ -455,7 +455,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                 <Footprints className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span>出游步调节奏 (Pace)</span>
                 <span className="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.2 rounded">
-                  适老步道严控
+                  乐龄步道严控
                 </span>
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -574,7 +574,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
           <div className="space-y-2">
             <label className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
               <Heart className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>特色主题与适老偏好 (Themes & Preferences)</span>
+              <span>特色主题与乐龄偏好 (Themes & Preferences)</span>
             </label>
             <div className="flex flex-wrap gap-2">
               {availableThemes.map((theme) => {
@@ -610,16 +610,16 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                 className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs text-stone-700 bg-stone-50/50 focus:outline-hidden"
               >
                 <option value="夫妻二人出行">夫妻二人出行 (偏爱安静、慢节奏与私享套房)</option>
-                <option value="知青老友4人小聚">知青老友4人小聚 (偏爱茶肆雅叙与打牌交流)</option>
-                <option value="独行老友随团结伴">独行老友随团结伴 (同住安排、金牌管家一对一照应)</option>
-                <option value="三代同行慢游">三代同行慢游 (老少兼顾、适老无障碍优先)</option>
+                <option value="知青同伴4人小聚">知青同伴4人小聚 (偏爱茶肆雅叙与打牌交流)</option>
+                <option value="独行同伴随团结伴">独行同伴随团结伴 (同住安排、金牌管家一对一照应)</option>
+                <option value="三代同行慢游">三代同行慢游 (代际兼顾、乐龄无障碍优先)</option>
               </select>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-stone-700 flex items-center gap-1">
                 <Pill className="w-3.5 h-3.5 text-rose-500" />
-                <span>适老健康与餐饮嘱托</span>
+                <span>乐龄健康与餐饮嘱托</span>
               </label>
               <input
                 type="text"
@@ -635,7 +635,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-100">
             <div className="text-[11px] text-stone-500 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>AI将自动配置三甲急救护士随团、随车AED与五星适老养生酒店标准</span>
+              <span>AI将自动配置三甲急救护士随团、随车AED与五星乐龄养生酒店标准</span>
             </div>
 
             <button
@@ -647,7 +647,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
               {loading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-stone-950" />
-                  <span>小老友正在精心规划适老行程...</span>
+                  <span>小乐伴正在精心规划乐龄行程...</span>
                 </>
               ) : (
                 <>
@@ -667,7 +667,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
             </div>
             <div className="space-y-1">
               <h3 className="font-serif font-bold text-base text-[#2C3E50]">
-                小老友正在为您推演【{selectedDest.split('·')[0]}】{duration}日慢游行程...
+                小乐伴正在为您推演【{selectedDest.split('·')[0]}】{duration}日慢游行程...
               </h3>
               <p className="text-xs text-stone-500 max-w-md mx-auto">
                 严格测算平缓步数（≤{pace === 'relaxed' ? 3500 : 5000}步）、严选避开高峰的VIP闭馆导赏、安排每日2小时静卧午休...
@@ -682,14 +682,14 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <span className="bg-[#2C3E50] text-[#D4AF37] text-xs font-bold px-2.5 py-0.5 rounded-full font-serif">
-                      {generatedPlan.durationDays}天{generatedPlan.durationNights}晚 · 适老慢游
+                      {generatedPlan.durationDays}天{generatedPlan.durationNights}晚 · 乐龄慢游
                     </span>
                     <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1">
                       <Footprints className="w-3 h-3" />
                       <span>日均约 {generatedPlan.avgDailySteps} 步 (平缓平地)</span>
                     </span>
                     <span className="bg-amber-100 text-amber-900 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                      适老五星认证
+                      乐龄五星认证
                     </span>
                   </div>
                   <h3 className="font-serif font-bold text-lg md:text-2xl text-[#2C3E50]">
@@ -720,7 +720,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                         pricePremium: generatedPlan.estimatedPrice + 1200,
                         durationDays: generatedPlan.durationDays,
                         departureDates: [{ date: '2026-09-18', remainingSlots: 8 }],
-                        fitnessDesc: `日均${generatedPlan.avgDailySteps}步·平缓适老五星`,
+                        fitnessDesc: `日均${generatedPlan.avgDailySteps}步·平缓乐龄五星`,
                         master: generatedPlan.assignedMaster,
                         tgo: generatedPlan.assignedTgo,
                       } as any)
@@ -739,7 +739,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                 <div className="bg-white rounded-2xl p-3.5 border border-amber-200/60 shadow-2xs space-y-1.5">
                   <div className="text-xs font-bold text-[#85660d] flex items-center gap-1">
                     <Smile className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>适老慢游核心原则</span>
+                    <span>乐龄慢游核心原则</span>
                   </div>
                   <p className="text-xs text-stone-700 leading-relaxed">
                     {generatedPlan.elderPhilosophy}
@@ -777,7 +777,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                     </div>
                     <div className="min-w-0">
                       <div className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded inline-block font-bold">
-                        金牌 TGO 适老管家
+                        金牌 TGO 乐龄管家
                       </div>
                       <div className="font-serif font-bold text-xs text-stone-900 truncate">
                         {generatedPlan.assignedTgo.name}
@@ -856,7 +856,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                       <button
                         onClick={() =>
                           speakPlan(
-                            `${day.dateLabel}，${day.title}。上午安排：${day.morning.title}。午餐享用：${day.lunch.restaurant}。下午静卧午休两小时后，前往：${day.afternoon.title}。夜宿五星适老酒店。`
+                            `${day.dateLabel}，${day.title}。上午安排：${day.morning.title}。午餐享用：${day.lunch.restaurant}。下午静卧午休两小时后，前往：${day.afternoon.title}。夜宿五星乐龄酒店。`
                           )
                         }
                         className="p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-[#85660d] border border-amber-200 cursor-pointer"
@@ -888,7 +888,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                         </p>
                         <div className="text-[11px] text-amber-800 bg-amber-50/80 px-2.5 py-1 rounded-lg border border-amber-200/60 flex items-center gap-1.5">
                           <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                          <span>适老关怀：{day.morning.elderCare}</span>
+                          <span>乐龄关怀：{day.morning.elderCare}</span>
                         </div>
                       </div>
                     </div>
@@ -924,7 +924,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                           <span className="font-serif font-bold text-xs md:text-sm text-indigo-950 flex items-center gap-1.5">
                             <span>酒店 2 小时静卧午休 (体力黄金恢复期)</span>
                             <span className="bg-indigo-200/80 text-indigo-950 text-[10px] px-1.5 py-0.2 rounded font-bold">
-                              适老核心保障
+                              乐龄核心保障
                             </span>
                           </span>
                           <span className="text-[11px] text-indigo-700 font-mono">
@@ -1013,7 +1013,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#D4AF37]" />
                   <h4 className="font-serif font-bold text-sm text-[#2C3E50]">
-                    对行程不满意？告诉小老友，一键智能微调
+                    对行程不满意？告诉小乐伴，一键智能微调
                   </h4>
                 </div>
                 <span className="text-[11px] text-stone-400">支持语音或文字即时微调</span>

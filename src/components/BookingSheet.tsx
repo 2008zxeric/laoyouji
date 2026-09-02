@@ -17,8 +17,10 @@ import {
   ExternalLink,
   Bot,
   Volume2,
+  MapPin,
+  Award,
 } from 'lucide-react';
-import { assessActivityHealthCompatibility } from '../utils/healthAdvisor';
+import { assessActivityHealthCompatibility, HealthAssessmentResult } from '../utils/healthAdvisor';
 
 export const BookingSheet: React.FC = () => {
   const {
@@ -40,7 +42,7 @@ export const BookingSheet: React.FC = () => {
     setIsHealthModalOpen,
   } = useApp();
 
-  // AI Booking Advice State
+  // All state hooks declared unconditionally at top level
   const [aiBookingAdvice, setAiBookingAdvice] = useState<{
     safetyReminder: string;
     pointsAdvice: string;
@@ -49,40 +51,14 @@ export const BookingSheet: React.FC = () => {
   const [isAiAdviceLoading, setIsAiAdviceLoading] = useState(false);
   const [isSpeakingAdvice, setIsSpeakingAdvice] = useState(false);
 
-  if (!isBookingOpen || !bookingTarget) return null;
-
-  const isActivity = bookingTarget.type === 'activity';
-  const activityData = isActivity ? (bookingTarget.data as Activity) : null;
-  const eventData = !isActivity ? (bookingTarget.data as TournamentEvent) : null;
-  const tripCategory = activityData?.tripCategory || 'domestic';
-
-  // Check login state: userProfile exists and isLoggedIn is not false
-  const isUserLoggedIn = Boolean(userProfile && userProfile.phone && userProfile.isLoggedIn !== false);
-
-  // Check marketing subsequent free eligibility
-  const freeEligibility = checkFreeEligibility(bookingTarget.data.id);
-
-  // Health Safety Assessment Check
-  const healthAssessment = assessActivityHealthCompatibility(
-    bookingTarget.data,
-    userProfile.healthProfile
-  );
-
   // Health Warning confirmation modal state
   const [showHealthWarningModal, setShowHealthWarningModal] = useState(false);
   const [hasAcknowledgedHealthWarning, setHasAcknowledgedHealthWarning] = useState(false);
 
   // Selected state
   const [selectedGroupType, setSelectedGroupType] = useState<GroupType>('small');
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    if (activityData && activityData.departureDates && activityData.departureDates.length > 0) {
-      return activityData.departureDates[0].date;
-    }
-    if (eventData) {
-      return eventData.startDate || '2026-09-15';
-    }
-    return '2026-09-12';
-  });
+  const [teamMode, setTeamMode] = useState<'paired' | 'solo_match'>('paired');
+  const [selectedDate, setSelectedDate] = useState<string>('2026-09-12');
 
   // Selected traveler IDs
   const [selectedTravelerIds, setSelectedTravelerIds] = useState<string[]>([
@@ -112,6 +88,52 @@ export const BookingSheet: React.FC = () => {
     payAmount: number;
     title: string;
   } | null>(null);
+
+  // Synchronize date and traveler selections whenever a bookingTarget is opened
+  useEffect(() => {
+    if (bookingTarget) {
+      if (bookingTarget.type === 'activity') {
+        const act = bookingTarget.data as Activity;
+        if (act.departureDates && act.departureDates.length > 0) {
+          setSelectedDate(act.departureDates[0].date);
+        } else {
+          setSelectedDate('2026-09-12');
+        }
+      } else {
+        const evt = bookingTarget.data as TournamentEvent;
+        setSelectedDate(evt.startDate || '2026-09-15');
+      }
+      if (travelers.length > 0) {
+        setSelectedTravelerIds([travelers[0].id]);
+      }
+      setHasAcknowledgedHealthWarning(false);
+    }
+  }, [bookingTarget?.data?.id, bookingTarget?.type, travelers.length]);
+
+  const isActivity = bookingTarget?.type === 'activity';
+  const activityData = isActivity ? (bookingTarget?.data as Activity) : null;
+  const eventData = !isActivity ? (bookingTarget?.data as TournamentEvent) : null;
+  const tripCategory = activityData?.tripCategory || 'domestic';
+
+  // Check login state: userProfile exists and isLoggedIn is not false
+  const isUserLoggedIn = Boolean(userProfile && userProfile.phone && userProfile.isLoggedIn !== false);
+
+  // Check marketing subsequent free eligibility
+  const freeEligibility = bookingTarget?.data?.id
+    ? checkFreeEligibility(bookingTarget.data.id)
+    : { isEligible: false, reason: '', campaignId: undefined };
+
+  // Health Safety Assessment Check
+  const healthAssessment: HealthAssessmentResult = bookingTarget?.data
+    ? assessActivityHealthCompatibility(bookingTarget.data, userProfile.healthProfile)
+    : {
+        isCompatible: true,
+        riskLevel: 'safe',
+        title: '适老健康安全保障',
+        reasons: [],
+        recommendations: [],
+        safeScore: 100,
+      };
 
   // Price calculations
   let unitPrice = 0;
@@ -143,6 +165,7 @@ export const BookingSheet: React.FC = () => {
   const earnedPoints = calculatePointsEarned(finalPayAmount, tripCategory);
 
   useEffect(() => {
+    if (!isBookingOpen || !bookingTarget?.data?.title) return;
     let isMounted = true;
     const fetchBookingAdvice = async () => {
       setIsAiAdviceLoading(true);
@@ -187,7 +210,7 @@ export const BookingSheet: React.FC = () => {
         window.speechSynthesis.cancel();
       }
     };
-  }, [bookingTarget.data.id, selectedDate, travelerCount, actualPointsToUse]);
+  }, [isBookingOpen, bookingTarget?.data?.id, selectedDate, travelerCount, actualPointsToUse]);
 
   const speakAdvice = (text: string) => {
     if (!('speechSynthesis' in window)) {
@@ -263,7 +286,7 @@ export const BookingSheet: React.FC = () => {
       bizType: isActivity ? 'activity' : 'event',
       targetId: bookingTarget.data.id,
       targetTitle: bookingTarget.data.title,
-      targetCover: bookingTarget.data.cover,
+      targetCover: coverImage,
       departureDate: selectedDate,
       groupType: selectedGroupType,
       unitPrice,
@@ -287,8 +310,12 @@ export const BookingSheet: React.FC = () => {
     });
   };
 
+  if (!isBookingOpen || !bookingTarget) return null;
+
+  const coverImage = bookingTarget.data.cover || (bookingTarget.data as any).images?.[0] || 'https://images.unsplash.com/photo-1511193311914-0346f16efe90?auto=format&fit=crop&w=1200&q=80';
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/65 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fadeIn p-0 sm:p-4">
+    <div className="fixed inset-0 z-60 overflow-y-auto bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center animate-fadeIn p-0 sm:p-4">
       <div className="relative w-full max-w-xl bg-[#FAF9F6] rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto shadow-2xl flex flex-col border border-[#EAE6DF]">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md px-5 py-4 border-b border-[#EAE6DF] flex items-center justify-between">
@@ -300,7 +327,7 @@ export const BookingSheet: React.FC = () => {
           </div>
           <button
             onClick={closeBooking}
-            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 transition-transform active:scale-95"
+            className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 transition-transform active:scale-95 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -309,7 +336,7 @@ export const BookingSheet: React.FC = () => {
         {/* Product Card Snippet */}
         <div className="p-4 bg-white border-b border-[#EAE6DF] flex space-x-3 items-center">
           <img
-            src={bookingTarget.data.cover}
+            src={coverImage}
             alt={bookingTarget.data.title}
             className="w-16 h-16 rounded-xl object-cover border border-[#EAE6DF] shrink-0"
           />
@@ -396,7 +423,7 @@ export const BookingSheet: React.FC = () => {
 
               <button
                 onClick={() => setIsHealthModalOpen(true)}
-                className="text-[11px] font-bold text-[#2C3E50] underline shrink-0 hover:opacity-80 flex items-center gap-0.5"
+                className="text-[11px] font-bold text-[#2C3E50] underline shrink-0 hover:opacity-80 flex items-center gap-0.5 cursor-pointer"
               >
                 <span>{userProfile.healthProfile?.isDeclared ? '修改健康档案' : '去申报档案'}</span>
                 <ExternalLink className="w-3 h-3" />
@@ -420,8 +447,8 @@ export const BookingSheet: React.FC = () => {
             </div>
           </div>
 
-          {/* STEP 1: Package selection for Activity */}
-          {isActivity && activityData && (
+          {/* STEP 1: Package selection for Activity / Team Mode for Event */}
+          {isActivity && activityData ? (
             <div className="space-y-2">
               <label className="text-xs font-bold text-[#2C3E50] uppercase tracking-wide">
                 1. 选择出游团型
@@ -466,13 +493,57 @@ export const BookingSheet: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+          ) : eventData ? (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#2C3E50] uppercase tracking-wide flex items-center justify-between">
+                <span>1. 参赛阵容与组队模式</span>
+                <span className="text-[#85660d] font-normal text-[11px]">全国组委会统筹</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <div
+                  onClick={() => setTeamMode('paired')}
+                  className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                    teamMode === 'paired'
+                      ? 'border-[#2C3E50] bg-white ring-2 ring-[#2C3E50]/15 shadow-xs'
+                      : 'border-[#EAE6DF] bg-white hover:border-stone-300'
+                  }`}
+                >
+                  <div className="font-bold text-xs text-[#2C3E50] flex items-center justify-between">
+                    <span className="font-serif italic">自备搭档 · 自由组队</span>
+                    {teamMode === 'paired' && <Check className="w-4 h-4 text-[#2C3E50]" />}
+                  </div>
+                  <div className="text-[11px] text-stone-500 mt-0.5">与老伴/牌友共同报名出征</div>
+                  <div className="text-xs font-bold text-emerald-700 mt-2 bg-emerald-50 px-2 py-0.5 rounded inline-block">
+                    推荐2人或4人同行
+                  </div>
+                </div>
 
-          {/* STEP 2: Departure Date */}
+                <div
+                  onClick={() => setTeamMode('solo_match')}
+                  className={`p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                    teamMode === 'solo_match'
+                      ? 'border-[#D4AF37] bg-white ring-2 ring-[#D4AF37]/20 shadow-xs'
+                      : 'border-[#EAE6DF] bg-white hover:border-[#D4AF37]/30'
+                  }`}
+                >
+                  <div className="font-bold text-xs text-[#2C3E50] flex items-center justify-between">
+                    <span className="font-serif italic">单人报名 · 智能配对</span>
+                    {teamMode === 'solo_match' && <Check className="w-4 h-4 text-[#D4AF37]" />}
+                  </div>
+                  <div className="text-[11px] text-stone-500 mt-0.5">组委会赛前智能引荐搭档</div>
+                  <div className="text-xs font-bold text-[#85660d] mt-2 bg-amber-50 px-2 py-0.5 rounded inline-block">
+                    按段位同城引荐
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* STEP 2: Departure Date & Venue Info */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-[#2C3E50] uppercase tracking-wide flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-[#2C3E50]" />
-              <span>{isActivity ? '2. 选择出发日期' : '比赛日期'}</span>
+              <span>{isActivity ? '2. 选择出发日期' : '比赛日期与国宾赛场'}</span>
             </label>
 
             {isActivity && activityData ? (
@@ -505,11 +576,29 @@ export const BookingSheet: React.FC = () => {
                   </div>
                 ))}
               </div>
-            ) : (
-              <div className="p-3 bg-white rounded-xl border border-[#EAE6DF] text-xs font-semibold text-[#2C3E50]">
-                {eventData?.startDate} 至 {eventData?.endDate} (共4天3晚)
+            ) : eventData ? (
+              <div className="p-3.5 bg-white rounded-2xl border border-[#EAE6DF] text-xs space-y-2 shadow-2xs">
+                <div className="flex items-center justify-between font-bold text-[#2C3E50]">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    {eventData.startDate} 至 {eventData.endDate}
+                  </span>
+                  <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
+                    适老慢节奏 · 4天3晚
+                  </span>
+                </div>
+                <div className="text-[11px] text-stone-600 flex items-center gap-1.5 border-t border-stone-100 pt-2">
+                  <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  <span>赛场：{eventData.venue || '五星国宾温泉酒店会议中心'}</span>
+                </div>
+                {eventData.referee && (
+                  <div className="text-[11px] text-stone-500 flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                    <span>主执裁：{eventData.referee.name} ({eventData.referee.title})</span>
+                  </div>
+                )}
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* STEP 3: Travelers Selection */}

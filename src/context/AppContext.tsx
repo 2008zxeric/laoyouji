@@ -22,6 +22,7 @@ import {
   DictCategory,
   DictItem,
   HealthProfile,
+  TripReminderNotice,
 } from '../types';
 import type { SiteInfo } from '../api/gateway';
 import {
@@ -259,6 +260,21 @@ interface AppContextType {
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
+  // Activity / Event Starting & Departure Reminders (活动开赛/研学24小时提醒)
+  isTripReminderEnabled: boolean;
+  setIsTripReminderEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleTripReminder: (val?: boolean) => void;
+  tripReminderLeadHours: number;
+  setTripReminderLeadHours: React.Dispatch<React.SetStateAction<number>>;
+  hasUnreadTripReminder: boolean;
+  setHasUnreadTripReminder: React.Dispatch<React.SetStateAction<boolean>>;
+  activeTripReminderNotice: TripReminderNotice | null;
+  setActiveTripReminderNotice: React.Dispatch<React.SetStateAction<TripReminderNotice | null>>;
+  isTripReminderModalOpen: boolean;
+  setIsTripReminderModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  triggerTripReminderCheck: (forceToast?: boolean, forceSimulate?: boolean) => TripReminderNotice | null;
+  dismissTripReminder: () => void;
+
   // Front Preview Layer
   previewTarget: { activity?: Activity; event?: TournamentEvent } | null;
   openFrontPreview: (target: { activity?: Activity; event?: TournamentEvent }) => void;
@@ -368,7 +384,142 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 3200);
+  };
+
+  // Activity / Event Starting & Departure Reminders (活动开赛/研学24小时行前提醒)
+  const [isTripReminderEnabled, setIsTripReminderEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('lyj_trip_reminder_enabled');
+      return saved !== null ? saved === 'true' : true; // Default ON for senior care
+    } catch {
+      return true;
+    }
+  });
+  const [tripReminderLeadHours, setTripReminderLeadHours] = useState<number>(24);
+  const [hasUnreadTripReminder, setHasUnreadTripReminder] = useState<boolean>(true);
+  const [isTripReminderModalOpen, setIsTripReminderModalOpen] = useState<boolean>(false);
+  const [activeTripReminderNotice, setActiveTripReminderNotice] = useState<TripReminderNotice | null>(() => {
+    return {
+      id: 'remind-1001',
+      orderId: 'ord-1001',
+      orderNo: 'LYJ20260812009',
+      bizType: 'activity',
+      title: '《江南文脉·苏州园林美学与昆曲私享名师慢游 5日》',
+      cover: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=400&q=80',
+      departureDate: '2026-09-26',
+      hoursLeft: 24,
+      venueOrDestination: '江苏省苏州市姑苏区平江路文创昆曲雅聚前厅',
+      contactGuideName: '顾清雅 (TGO专属管家)',
+      contactGuidePhone: '181 0012 9722',
+      gatheringTime: '明日上午 08:30 集合出发',
+      gatheringPlace: '苏州古城昆曲会馆正门前厅（近地铁平江路站，提供无障碍接送）',
+      weatherTips: '明日苏州晴转多云，气温 22℃~28℃，微风适宜出行；建议着轻便透气长袖与防滑软底鞋，早晚备薄开衫。',
+      medicationTips: [
+        '高血压/降糖等长期慢病常用药物（备足5日剂量）',
+        '自备保温水壶（各景点设温热罗汉果草本茶饮站）',
+        '防眩晕、创可贴及个人特殊护理包',
+      ],
+      healthReminders: [
+        '随团配 AED 便携急救除颤仪与红十字应急救护员',
+        '全程执行适老慢节奏，每漫步40分钟设静音茶歇',
+        '已接入苏州三甲医院20分钟应急绿色就医通道',
+      ],
+      packingChecklist: [
+        '本人二代身份证原件（入园核验必备）',
+        '常备慢性病药品与降压药盒',
+        '轻便软底防滑健步鞋',
+        '便携保温水壶（常喝温水）',
+        '智能手机及随身充电宝',
+        '遮阳帽或折叠晴雨伞',
+      ],
+      status: 'upcoming_24h',
+      createdAt: '2026-08-28 08:00',
+    };
+  });
+
+  const triggerTripReminderCheck = (forceToast = false, forceSimulate = false): TripReminderNotice | null => {
+    if (!isTripReminderEnabled && !forceSimulate) return null;
+
+    // Find the earliest upcoming paid order or mock
+    const paidOrders = orders.filter((o) => o.status === 'paid' || o.status === 'travelling');
+    const targetOrder = paidOrders[0] || orders[0];
+
+    if (!targetOrder) return null;
+
+    const isEvt = targetOrder.bizType === 'event';
+    const notice: TripReminderNotice = {
+      id: `remind-${Date.now()}`,
+      orderId: targetOrder.id,
+      orderNo: targetOrder.orderNo,
+      bizType: targetOrder.bizType === 'event' ? 'event' : 'activity',
+      title: targetOrder.targetTitle,
+      cover: targetOrder.targetCover,
+      departureDate: targetOrder.departureDate || '2026-09-26',
+      hoursLeft: 24,
+      venueOrDestination: isEvt ? '黄山昱城皇冠假日酒店 乐龄棋牌主赛场' : '江苏省苏州市姑苏区平江路文创会馆',
+      contactGuideName: isEvt ? '沈国栋 (特邀国家级裁判长)' : '顾清雅 (TGO专属管家)',
+      contactGuidePhone: '181 0012 9722',
+      gatheringTime: isEvt ? '明日上午 08:30 开幕检录' : '明日上午 08:30 集合出发',
+      gatheringPlace: isEvt ? '黄山昱城皇冠假日酒店 3楼千人宴会厅检录台' : '苏州古城昆曲会馆正门前厅（近地铁站，配无障碍电梯）',
+      weatherTips: isEvt
+        ? '明日黄山天气晴好微凉，室内比赛大厅空调恒定24℃，建议携带防风外套，赛场提供温热养生茶。'
+        : '明日目的地晴转多云，气温 22℃~28℃，微风适宜出行；建议着轻便透气衣物与防滑软底鞋。',
+      medicationTips: [
+        '长期服用的降压药、降糖药（请随身携带备足用量）',
+        '自备温水杯（现场设草本茶饮与低糖茶水站）',
+        '心血管常用速效急救药品随身放于随手包中',
+      ],
+      healthReminders: [
+        '现场/随团配备 AED 便携除颤仪与专业三甲护士',
+        isEvt ? '执行适老限时积分制，每轮赛局后强制20分钟站立调息茶歇' : '全程平缓步道无台阶，每走40分钟安排茶歇休憩',
+        '已对接属地三甲医院20分钟绿色急救通道',
+      ],
+      packingChecklist: [
+        '本人二代身份证原件（检录/入住凭据）',
+        '常备慢性病药品与降压药',
+        '轻便防滑健步鞋',
+        '便携保温水杯',
+        '手机与随身充电宝',
+        '换洗衣物与薄外套',
+      ],
+      status: 'upcoming_24h',
+      createdAt: new Date().toLocaleString('zh-CN', { hour12: false }),
+    };
+
+    setActiveTripReminderNotice(notice);
+    setHasUnreadTripReminder(true);
+
+    if (forceToast) {
+      showToast(
+        isEvt
+          ? `🔔【24小时开赛提醒】您报名的《${notice.title.slice(0, 16)}...》将于明日开赛，请做好准备！`
+          : `🔔【24小时行前提醒】您报名的《${notice.title.slice(0, 16)}...》将于明日启程，管家已在集合点恭候！`
+      );
+    }
+
+    return notice;
+  };
+
+  const toggleTripReminder = (explicitVal?: boolean) => {
+    setIsTripReminderEnabled((prev) => {
+      const next = explicitVal !== undefined ? explicitVal : !prev;
+      try {
+        localStorage.setItem('lyj_trip_reminder_enabled', String(next));
+      } catch {}
+      if (next) {
+        showToast('🔔 已开启『活动开赛/研学提醒』：将在开始前24小时推送页面内Toast与红点提醒');
+        triggerTripReminderCheck(true, true);
+      } else {
+        showToast('已关闭行程开赛与研学出团提醒');
+        setHasUnreadTripReminder(false);
+      }
+      return next;
+    });
+  };
+
+  const dismissTripReminder = () => {
+    setHasUnreadTripReminder(false);
   };
 
   // Front Preview Layer State
@@ -1593,6 +1744,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         calculateMaxPointsDeduction,
         toastMessage,
         showToast,
+        isTripReminderEnabled,
+        setIsTripReminderEnabled,
+        toggleTripReminder,
+        tripReminderLeadHours,
+        setTripReminderLeadHours,
+        hasUnreadTripReminder,
+        setHasUnreadTripReminder,
+        activeTripReminderNotice,
+        setActiveTripReminderNotice,
+        isTripReminderModalOpen,
+        setIsTripReminderModalOpen,
+        triggerTripReminderCheck,
+        dismissTripReminder,
         previewTarget,
         openFrontPreview,
         closeFrontPreview,

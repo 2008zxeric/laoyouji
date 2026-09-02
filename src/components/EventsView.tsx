@@ -10,15 +10,20 @@ export const EventsView: React.FC = () => {
 
   const categories = [
     { id: 'all', label: '全部赛事' },
-    { id: '智力掼蛋', label: '🀄 乐龄掼蛋大师赛' },
-    { id: '竞技桥牌', label: '♠️ 名仕桥牌邀请赛' },
-    { id: '摄影大赛', label: '📷 金秋山海摄影大赛' },
-    { id: '太极养生', label: '🧘 太极养生名家汇' },
+    { id: '掼蛋大师赛', label: '🀄 乐龄掼蛋大师赛' },
+    { id: '常青藤桥牌', label: '♠️ 名仕桥牌邀请赛' },
+    { id: '棋艺名士赛', label: '♟️ 象棋/围棋名士赛' },
+    { id: '金秋摄影', label: '📷 金秋摄影创作营' },
+    { id: '太极养生功', label: '🧘 太极养生名家汇' },
+    { id: '常青藤乒乓球', label: '🏓 乒羽常青联赛' },
   ];
 
   const filteredEvents = useMemo(() => {
     if (selectedCategory === 'all') return events;
-    return events.filter((e) => e.category === selectedCategory);
+    if (selectedCategory === '棋艺名士赛') {
+      return events.filter((e) => e.category.includes('棋') || e.category.includes('象棋') || e.category.includes('围棋'));
+    }
+    return events.filter((e) => e.category === selectedCategory || e.category.includes(selectedCategory));
   }, [events, selectedCategory]);
 
   return (
@@ -100,11 +105,27 @@ export const EventsView: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))}
-        </div>
+        {filteredEvents.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl p-8 text-center border border-[#EAE6DF] space-y-3">
+            <Trophy className="w-12 h-12 text-stone-300 mx-auto" />
+            <h4 className="font-serif font-bold text-[#2C3E50] text-base">暂未找到对应分类的开放赛事</h4>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto">
+              您可以切换上方分类标签，或点击下方按钮查看正在火热报名中的所有乐龄赛事。
+            </p>
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className="px-4 py-2 rounded-xl bg-[#2C3E50] text-[#D4AF37] text-xs font-bold hover:bg-[#1a252f]"
+            >
+              查看全部乐龄赛事
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

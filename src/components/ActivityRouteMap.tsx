@@ -79,7 +79,7 @@ export interface WaypointData {
     gradient: string; // e.g. "平缓无台阶石板路"
     restPoints: string; // e.g. "每百米设长廊茶亭"
     shadeRate: string; // e.g. "林荫覆盖率 85%"
-    amenities: string; // e.g. "配备无障碍坡道与适老休息椅"
+    amenities: string; // e.g. "配备无障碍坡道与乐龄休息椅"
   };
 }
 
@@ -152,7 +152,7 @@ const ROUTE_PRESETS: Record<
           gradient: '全园铺设平整回廊石板路，无陡坡',
           restPoints: '全廊每隔 30 米设有美人靠与木质长椅',
           shadeRate: '古树与游廊遮阴率达 90%',
-          amenities: '园内配备无障碍通道及适老电瓶车',
+          amenities: '园内配备无障碍通道及乐龄电瓶车',
         },
       },
       {
@@ -495,7 +495,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
       const diningSummary =
         typeof item.dining === 'object'
           ? `早: ${item.dining.breakfast} | 午: ${item.dining.lunch} | 晚: ${item.dining.dinner}`
-          : String(item.dining || '精选全包适老膳食');
+          : String(item.dining || '精选全包乐龄膳食');
 
       const defPhotos = [
         {
@@ -517,7 +517,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
         x: presetPoint?.x ?? Math.max(12, Math.min(88, calcX)),
         y: presetPoint?.y ?? Math.max(20, Math.min(80, calcY)),
         elevation: presetPoint?.elevation ?? 120 + idx * 40,
-        steps: item.stepsEstimated || '3,500 步 (适老平缓)',
+        steps: item.stepsEstimated || '3,500 步 (乐龄平缓)',
         category: presetPoint?.category || 'heritage',
         categoryLabel:
           presetPoint?.category === 'museum'
@@ -528,10 +528,10 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
             ? '山水生态'
             : '文化遗产',
         icon: presetPoint?.icon || '🏛️',
-        morning: item.morning || '专车适老舒缓接驳，开启文化品鉴',
+        morning: item.morning || '专车乐龄舒缓接驳，开启文化品鉴',
         afternoon: item.afternoon || '名师随团深度讲解，漫步平缓步道',
         evening: item.evening || '甄选美馔养生晚餐，温泉入住放松',
-        hotel: item.hotel || '甄选五星适老静音酒店',
+        hotel: item.hotel || '甄选五星乐龄静音酒店',
         dining: diningSummary,
         driveTime: presetPoint?.driveTime || '单程车程 ≤ 40 分钟',
         highlightTag: presetPoint?.highlightTag || '名师专场私享',
@@ -541,7 +541,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
           `${item.title} 承载着深厚的地方文脉与历史积淀。在此处慢步研学，名师将深入浅出剖析建筑美学、历史典故与民间非遗技艺，为长辈带来沉浸式的精神滋养。`,
         culturalTip:
           presetPoint?.culturalTip ||
-          `💡 适老慢游小贴士：此处环境清幽静谧，建议放慢呼吸，细细品味砖木石雕与光影变化。随团医护与领队全程陪同，提供充足休息与热茶补给。`,
+          `💡 乐龄慢游小贴士：此处环境清幽静谧，建议放慢呼吸，细细品味砖木石雕与光影变化。随团医护与领队全程陪同，提供充足休息与热茶补给。`,
         poetry: presetPoint?.poetry || {
           verse: '山光悦鸟性，潭影空人心。',
           author: '常建',
@@ -800,7 +800,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
             <Footprints className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[10px] text-stone-500">适老慢行节奏</div>
+            <div className="text-[10px] text-stone-500">乐龄慢行节奏</div>
             <div className="font-serif font-bold text-xs sm:text-sm text-emerald-900">
               日均 3,600 步
             </div>
@@ -954,7 +954,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
                       fontFamily="sans-serif"
                       textAnchor="middle"
                     >
-                      🚌 {nextW.driveTime.split(' ')[0] || '适老车程'}
+                      🚌 {nextW.driveTime.split(' ')[0] || '乐龄车程'}
                     </text>
                   </g>
                 );
@@ -1113,7 +1113,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
               <span>全线每日慢行步数与海拔地貌平缓度剖面</span>
             </span>
             <span className="text-[11px] text-emerald-700 font-medium">
-              ✓ 全程无险峰爬阶 · 适老指数 ★★★★★
+              ✓ 全程无险峰爬阶 · 乐龄指数 ★★★★★
             </span>
           </div>
 
@@ -1477,7 +1477,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
                       随团文化名师语音导览
                     </div>
                     <div className="text-[11px] text-[#85660d]">
-                      {isReadingAudio ? '正在为长辈朗读文化故事...' : '适老慢速语音 · 点击开启伴随式聆听'}
+                      {isReadingAudio ? '正在为长辈朗读文化故事...' : '乐龄慢速语音 · 点击开启伴随式聆听'}
                     </div>
                   </div>
                 </div>
@@ -1544,7 +1544,7 @@ export const ActivityRouteMap: React.FC<ActivityRouteMapProps> = ({
               <div className="bg-[#FAF9F6] rounded-2xl p-3.5 border border-[#EAE6DF] space-y-2 text-xs">
                 <div className="font-bold text-[#2C3E50] flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                  <span>适老慢行与舒适度指标</span>
+                  <span>乐龄慢行与舒适度指标</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-stone-600">
                   <div className="flex items-center gap-1.5">

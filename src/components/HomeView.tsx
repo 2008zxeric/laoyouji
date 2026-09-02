@@ -34,6 +34,7 @@ export const HomeView: React.FC = () => {
     setSelectedActivity,
     setSelectedEvent,
     setIsTgoListOpen,
+    isTgoListOpen, // Add this
     setSelectedTgo,
     openBooking,
     openPoster,
@@ -125,27 +126,27 @@ export const HomeView: React.FC = () => {
           </div>
 
           {/* Banner Content Bottom */}
-          <div className="absolute bottom-4 left-4 right-4 text-white">
+          <div className="absolute bottom-4 left-4 right-4 text-[#FAF9F6]">
             <div className="flex items-baseline justify-between gap-2 mb-1">
-              <h2 className="text-lg sm:text-2xl font-serif italic font-bold leading-tight drop-shadow-md text-[#FAF9F6] line-clamp-1">
+              <h2 className="text-lg sm:text-2xl font-serif italic font-semibold leading-tight drop-shadow-sm line-clamp-1">
                 {currentBanner.title}
               </h2>
-              <span className="text-[#D4AF37] font-serif font-bold text-base sm:text-xl shrink-0">
+              <span className="text-[#A68F6C] font-serif font-semibold text-base sm:text-xl shrink-0">
                 {currentBanner.price}
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-stone-200 line-clamp-1 mb-3 opacity-90 font-light">
+            <p className="text-xs sm:text-sm text-[#DCDAD7] line-clamp-1 mb-3 opacity-90 font-light">
               {currentBanner.subtitle}
             </p>
 
-            <div className="flex items-center justify-between pt-1 border-t border-white/15">
+            <div className="flex items-center justify-between pt-1 border-t border-[#FAF9F6]/15">
               <div className="flex items-center gap-2">
                 {heroBanners.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setActiveBannerIndex(idx)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      activeBannerIndex === idx ? 'w-6 bg-[#D4AF37]' : 'w-2 bg-white/50'
+                      activeBannerIndex === idx ? 'w-6 bg-[#A68F6C]' : 'w-2 bg-[#FAF9F6]/50'
                     }`}
                     title={`切换第 ${idx + 1} 张`}
                   />
@@ -173,19 +174,19 @@ export const HomeView: React.FC = () => {
       </section>
 
       {/* 2. Senior Dispatch & Daily Comfort Index */}
-      <section className="bg-gradient-to-r from-[#2C3E50]/5 via-amber-500/10 to-[#2C3E50]/5 rounded-2xl p-3.5 border border-[#D4AF37]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+      <section className="bg-white rounded-2xl p-4 border border-[#E6E3DE] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#2C3E50] text-[#D4AF37] flex items-center justify-center shrink-0 shadow-sm border border-[#D4AF37]/40">
-            <Sun className="w-5 h-5 text-[#D4AF37] animate-spin duration-10000" />
+          <div className="w-10 h-10 rounded-xl bg-[#E4E0D9] text-[#3A3F44] flex items-center justify-center shrink-0 border border-[#DCDAD7]">
+            <Sun className="w-5 h-5 text-[#8B939A] animate-spin duration-10000" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-[#2C3E50] text-sm">老友金秋适游指数</span>
-              <span className="bg-[#D4AF37]/20 text-[#2C3E50] font-bold text-[10px] px-2 py-0.5 rounded-full border border-[#D4AF37]/40">
+              <span className="font-serif font-semibold text-[#3A3F44] text-sm">乐龄金秋乐游指数</span>
+              <span className="bg-[#E4E0D9] text-[#5D666E] font-medium text-[10px] px-2 py-0.5 rounded-full border border-[#DCDAD7]">
                 适宜度 98% · 宜缓步
               </span>
             </div>
-            <p className="text-xs text-stone-600 mt-0.5 line-clamp-1">
+            <p className="text-xs text-[#7D7F82] mt-0.5 line-clamp-1">
               今日江浙及徽州秋高气爽，平均步数预计控制在 4,000 步以内，配备随团医疗包。
             </p>
           </div>
@@ -194,157 +195,108 @@ export const HomeView: React.FC = () => {
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             onClick={() => openGlobalAiWithPrompt ? openGlobalAiWithPrompt() : setActiveTab('ai')}
-            className="flex-1 sm:flex-none text-xs bg-white hover:bg-stone-50 text-[#2C3E50] border border-[#EAE6DF] px-3 py-1.5 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none text-xs bg-[#FAF9F6] hover:bg-[#F0EEEB] text-[#5D666E] border border-[#EAE6DF] px-3 py-1.5 rounded-xl font-medium flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
           >
-            <Bot className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Bot className="w-3.5 h-3.5 text-[#A68F6C]" />
             <span>问AI管家</span>
           </button>
           <button
             onClick={() => setIsCheckinOpen(true)}
-            className="flex-1 sm:flex-none text-xs bg-[#2C3E50] hover:bg-[#1f2d3a] text-[#FAF9F6] px-3 py-1.5 rounded-xl font-bold flex items-center justify-center gap-1.5 shadow-2xs border border-[#D4AF37]/30 transition-transform active:scale-95 cursor-pointer"
+            className="flex-1 sm:flex-none text-xs bg-[#3A3F44] hover:bg-[#2C3E50] text-[#FAF9F6] px-3 py-1.5 rounded-xl font-semibold flex items-center justify-center gap-1.5 shadow-sm border border-[#5D666E] transition-transform active:scale-95 cursor-pointer"
           >
-            <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <Calendar className="w-3.5 h-3.5 text-[#A68F6C]" />
             <span>今日签到</span>
           </button>
         </div>
       </section>
 
-      {/* 2.5 首页最醒目 2 大核心入口：找慢游 / 找赛事（复刻设计稿规范与大字号直观指引） */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-        {/* 找活动大入口 */}
+      {/* 2.5 NEW: 1+2 Layout (Find Companions + Slow Travel/Competition) */}
+      <section className="space-y-4">
+        {/* Hero: Find Companions (Most Prominent) */}
         <div
-          onClick={() => setActiveTab('activities')}
-          className="relative bg-gradient-to-br from-amber-50/80 via-white to-amber-100/40 rounded-3xl p-4 sm:p-5 border border-[#D4AF37]/40 shadow-sm hover:shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between group overflow-hidden"
+          onClick={() => {
+            // Placeholder: Show selector modal
+            setIsTgoListOpen(true);
+          }}
+          className="relative bg-gradient-to-br from-[#2C3E50] via-[#1f2d3a] to-[#2C3E50] rounded-3xl p-6 shadow-xl border border-[#D4AF37]/60 cursor-pointer overflow-hidden group"
         >
-          <div className="absolute top-3 right-3 bg-[#D4AF37] text-stone-950 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
-            热
-          </div>
-          <div className="space-y-1.5 z-10">
-            <div className="flex items-center gap-2">
-              <span className="w-9 h-9 rounded-2xl bg-[#2C3E50] text-[#D4AF37] flex items-center justify-center font-bold text-base shadow-xs">
-                🧭
-              </span>
-              <h3 className="font-serif font-bold text-lg text-[#2C3E50] group-hover:text-[#D4AF37] transition-colors">
-                找慢游
-              </h3>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-[#D4AF37]/15 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+          <div className="flex items-center justify-between z-10 relative">
+            <div className="space-y-1.5">
+              <h3 className="font-serif font-bold text-2xl text-[#FAF9F6]">找旅伴 · 名师管家</h3>
+              <p className="text-sm text-stone-300">TGO/名师/裁判，三位一体尊享随行</p>
             </div>
-            <p className="text-xs text-stone-600">主题 · 行程 · 预算 · 时间，随您筛选</p>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="bg-white text-stone-700 border border-[#D4AF37]/30 text-[10px] px-2 py-0.5 rounded-full font-medium">江南文博</span>
-              <span className="bg-white text-stone-700 border border-[#D4AF37]/30 text-[10px] px-2 py-0.5 rounded-full font-medium">名师随行</span>
-              <span className="bg-white text-stone-700 border border-[#D4AF37]/30 text-[10px] px-2 py-0.5 rounded-full font-medium">康养慢游</span>
+            <div className="w-14 h-14 rounded-2xl bg-[#D4AF37] text-[#2C3E50] flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <Users className="w-7 h-7" />
             </div>
-          </div>
-          <div className="flex items-center gap-1 text-[#2C3E50] group-hover:text-[#D4AF37] font-bold text-xs shrink-0 pl-2">
-            <span>去逛逛</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
 
-        {/* 找赛事大入口 */}
+        {/* New Interactive AI Companion Portal */}
         <div
-          onClick={() => setActiveTab('events')}
-          className="relative bg-gradient-to-br from-rose-50/80 via-white to-rose-100/40 rounded-3xl p-4 sm:p-5 border border-rose-300/60 shadow-sm hover:shadow-md transition-all active:scale-[0.99] cursor-pointer flex items-center justify-between group overflow-hidden"
+          onClick={() => openGlobalAiWithPrompt ? openGlobalAiWithPrompt('请帮我规划一段舒缓的慢游行程') : setActiveTab('ai')}
+          className="bg-[#2C3E50] rounded-3xl p-5 shadow-lg border border-[#D4AF37]/40 flex items-center gap-4 cursor-pointer hover:bg-[#1f2d3a] transition-all"
         >
-          <div className="absolute top-3 right-3 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-2xs animate-pulse">
-            赛
+          <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/20 flex items-center justify-center shrink-0 animate-pulse">
+            <Bot className="w-7 h-7 text-[#D4AF37]" />
           </div>
-          <div className="space-y-1.5 z-10">
-            <div className="flex items-center gap-2">
-              <span className="w-9 h-9 rounded-2xl bg-[#2C3E50] text-[#D4AF37] flex items-center justify-center font-bold text-base shadow-xs">
-                🏆
-              </span>
-              <h3 className="font-serif font-bold text-lg text-[#2C3E50] group-hover:text-rose-700 transition-colors">
-                找赛事
-              </h3>
+          <div className="flex-1">
+            <h3 className="font-serif font-bold text-lg text-[#FAF9F6]">伴游 AI 管家</h3>
+            <p className="text-xs text-stone-300 mt-1">24小时语音陪伴，适老规划，即问即答</p>
+          </div>
+          <ChevronRight className="w-6 h-6 text-[#D4AF37]" />
+        </div>
+
+        {/* 2-Grid: Travel / Competition (Distinct, Elevated) */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Find Travel */}
+          <div
+            onClick={() => setActiveTab('activities')}
+            className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-5 border border-[#D4AF37]/40 shadow-sm flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
+              <Compass className="w-6 h-6 text-[#2C3E50]" />
             </div>
-            <p className="text-xs text-stone-600">掼蛋 · 桥牌 · 摄影 · 太极，一展身手</p>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="bg-white text-rose-800 border border-rose-200 text-[10px] px-2 py-0.5 rounded-full font-medium">荣誉奖池</span>
-              <span className="bg-white text-rose-800 border border-rose-200 text-[10px] px-2 py-0.5 rounded-full font-medium">双人组队</span>
-              <span className="bg-white text-rose-800 border border-rose-200 text-[10px] px-2 py-0.5 rounded-full font-medium">乐龄竞技</span>
+            <div>
+              <h3 className="font-serif font-bold text-lg text-[#2C3E50]">找慢游</h3>
+              <p className="text-xs text-stone-500 mt-1">发现适老文旅</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-[#2C3E50] group-hover:text-rose-700 font-bold text-xs shrink-0 pl-2">
-            <span>去参赛</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          {/* Find Competition */}
+          <div
+            onClick={() => setActiveTab('events')}
+            className="bg-gradient-to-br from-rose-50 to-white rounded-3xl p-5 border border-rose-200 shadow-sm flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center">
+              <Trophy className="w-6 h-6 text-rose-700" />
+            </div>
+            <div>
+              <h3 className="font-serif font-bold text-lg text-[#2C3E50]">找赛事</h3>
+              <p className="text-xs text-stone-500 mt-1">一展竞技风采</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 3. Quick Portals Navigation (6 Gold Grid) */}
-      <section className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 md:gap-3.5">
+      {/* 3. Refined Portals Navigation (Reduced to 4) */}
+      <section className="grid grid-cols-4 gap-3">
         {[
-          {
-            title: '找慢游',
-            subtitle: '江南·文博',
-            icon: Compass,
-            action: () => setActiveTab('activities'),
-            color: 'from-amber-500/10 to-amber-600/20 text-[#2C3E50]',
-            border: 'border-[#D4AF37]/40',
-          },
-          {
-            title: '乐龄赛事',
-            subtitle: '掼蛋·桥牌',
-            icon: Trophy,
-            action: () => setActiveTab('events'),
-            color: 'from-rose-500/10 to-rose-600/20 text-[#2C3E50]',
-            border: 'border-rose-300/60',
-            badge: '奖金',
-          },
-          {
-            title: '名仕会员',
-            subtitle: `${currentTier.name.split('·')[1]}礼遇`,
-            icon: Award,
-            action: () => setIsMembershipModalOpen(true),
-            color: 'from-[#2C3E50]/10 to-[#2C3E50]/20 text-[#2C3E50]',
-            border: 'border-[#2C3E50]/30',
-          },
-          {
-            title: '积分商城',
-            subtitle: `${userProfile.points} 积分`,
-            icon: Gift,
-            action: () => setIsPointsMallOpen(true),
-            color: 'from-emerald-500/10 to-emerald-600/20 text-[#2C3E50]',
-            border: 'border-emerald-300/60',
-          },
-          {
-            title: '老友圈',
-            subtitle: '心愿·游记',
-            icon: Users,
-            action: () => setActiveTab('community'),
-            color: 'from-sky-500/10 to-sky-600/20 text-[#2C3E50]',
-            border: 'border-sky-300/60',
-          },
-          {
-            title: '伴游管家',
-            subtitle: '金牌伴游库',
-            icon: Award,
-            action: () => setIsTgoListOpen(true),
-            color: 'from-amber-500/10 to-amber-600/20 text-[#2C3E50]',
-            border: 'border-amber-300/60',
-            badge: '名师',
-          },
+          { title: '会员礼遇', icon: Award, action: () => setIsMembershipModalOpen(true) },
+          { title: '积分商城', icon: Gift, action: () => setIsPointsMallOpen(true) },
+          { title: '老友圈', icon: Users, action: () => setActiveTab('community') },
+          { title: 'AI规划', icon: Bot, action: () => openGlobalAiWithPrompt ? openGlobalAiWithPrompt() : setActiveTab('ai') },
         ].map((item, idx) => {
           const Icon = item.icon;
           return (
             <button
               key={idx}
               onClick={item.action}
-              className={`relative bg-gradient-to-b ${item.color} bg-white p-3 rounded-2xl border ${item.border} flex flex-col items-center justify-center text-center shadow-xs hover:shadow-md transition-all active:scale-95 group`}
+              className="bg-white p-3 rounded-2xl border border-[#EAE6DF] flex flex-col items-center justify-center text-center shadow-xs hover:shadow-md transition-all group"
             >
-              {item.badge && (
-                <span className="absolute -top-1.5 -right-1 bg-[#D4AF37] text-stone-950 text-[9px] font-bold px-1.5 py-0.2 rounded-full scale-90 shadow-2xs">
-                  {item.badge}
-                </span>
-              )}
-              <div className="w-9 h-9 rounded-xl bg-white/90 shadow-xs flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
-                <Icon className="w-5 h-5 text-[#2C3E50]" />
+              <div className="w-8 h-8 rounded-xl bg-[#2C3E50]/5 text-[#2C3E50] flex items-center justify-center mb-1.5 group-hover:scale-105 transition-transform">
+                <Icon className="w-4 h-4" />
               </div>
-              <span className="font-serif font-bold text-xs text-[#2C3E50] leading-tight">
-                {item.title}
-              </span>
-              <span className="text-[10px] text-stone-500 font-sans mt-0.5">{item.subtitle}</span>
+              <span className="font-bold text-[11px] text-[#2C3E50]">{item.title}</span>
             </button>
           );
         })}
@@ -602,211 +554,8 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Scholars & Certified TGO Companions */}
-      <section className="bg-[#2C3E50] rounded-3xl p-4 md:p-5 text-[#FAF9F6] border border-[#D4AF37]/30 shadow-md space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#D4AF37] text-stone-950 flex items-center justify-center font-serif font-bold text-sm">
-              管
-            </div>
-            <div>
-              <h2 className="font-serif italic font-bold text-base md:text-lg text-[#FAF9F6]">
-                金牌 TGO 伴游管家 · 如侍父母
-              </h2>
-              <p className="text-[11px] text-[#D4AF37]/90 font-sans">
-                特聘国家研学导师 · 红十字急救双认证 · 全程慢步慢语
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setIsTgoListOpen(true)}
-            className="text-xs text-[#D4AF37] hover:underline flex items-center gap-0.5 cursor-pointer font-semibold"
-          >
-            <span>全部 {tgos.length} 位管家</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {tgos.slice(0, 3).map((t) => (
-            <div
-              key={t.id}
-              onClick={() => setSelectedTgo(t)}
-              className="bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/10 hover:border-[#D4AF37]/60 transition-all cursor-pointer flex flex-col justify-between space-y-2.5 group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src={t.avatar}
-                    alt={t.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 shadow-xs"
-                    style={{ borderColor: t.color || '#D4AF37' }}
-                  />
-                  <span className="absolute -bottom-1 -right-1 bg-[#D4AF37] text-stone-950 text-[9px] px-1 py-0.2 rounded-full font-bold shadow-2xs">
-                    {t.badge || (t.tier === 'gold' ? '金牌' : '资深')}
-                  </span>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-serif font-bold text-sm text-[#FAF9F6] group-hover:text-[#D4AF37] transition-colors">
-                      {t.name}
-                    </span>
-                    <span className="text-[9px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-1.5 py-0.2 rounded font-bold">
-                      {t.tier === 'gold' ? '金旅伴' : '银旅伴'}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-stone-300 line-clamp-1 mt-0.5">{t.title}</p>
-                </div>
-              </div>
-              <p className="text-xs text-stone-200 line-clamp-2 font-light leading-relaxed">
-                "{t.motto || '慢游随心，如侍父母，细心照护每一位老友。'}"
-              </p>
-              <div className="flex items-center justify-between text-[10px] text-amber-200/90 pt-1 border-t border-white/10">
-                <span>带团 {t.trips || 12}+ 场 · 评分 5.0</span>
-                <span className="text-[#D4AF37] font-bold group-hover:underline flex items-center gap-0.5">
-                  <span>查看排期与预约</span>
-                  <ChevronRight className="w-3 h-3" />
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 7. Senior Testimonials & Editorial Stories */}
-      <section className="space-y-3.5">
-        <div className="flex items-end justify-between px-1">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-4 bg-emerald-600 rounded-full"></span>
-              <h2 className="text-lg md:text-xl font-serif italic font-bold text-[#2C3E50]">
-                老友随笔 · 真实足迹
-              </h2>
-            </div>
-            <p className="text-xs text-stone-500 font-sans ml-3.5 mt-0.5">
-              知识分子同行 · 99.4% 好评率 · 见字如面
-            </p>
-          </div>
-          <button
-            onClick={() => setActiveTab('community')}
-            className="text-xs font-bold text-[#2C3E50] hover:text-[#D4AF37] flex items-center gap-0.5 transition-colors"
-          >
-            <span>老友圈全部</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {MOCK_ARTICLES.slice(0, 2).map((art) => (
-            <div
-              key={art.id}
-              onClick={() => setActiveTab('community')}
-              className="bg-white rounded-3xl p-4 border border-[#EAE6DF] shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <img
-                    src={art.avatar}
-                    alt={art.author}
-                    className="w-7 h-7 rounded-full object-cover border border-stone-200"
-                  />
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="font-serif font-bold text-[#2C3E50]">{art.author}</span>
-                    <span className="text-[10px] text-stone-400">· {art.authorTitle}</span>
-                  </div>
-                </div>
-
-                <h3 className="font-serif italic font-bold text-sm md:text-base text-[#2C3E50] leading-snug line-clamp-1">
-                  {art.title}
-                </h3>
-                <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
-                  {art.content[0]}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-xs text-stone-400">
-                <div className="flex items-center gap-2">
-                  {art.tags.map((t, idx) => (
-                    <span key={idx} className="bg-stone-100 text-stone-600 text-[10px] px-2 py-0.5 rounded-full">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1 text-[#2C3E50]">
-                  <ThumbsUp className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>{art.likes} 知音赞</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 8. Six Senior Service Guarantees */}
-      <section className="bg-gradient-to-br from-[#FAF9F6] to-[#F5F2EB] rounded-3xl p-4 md:p-6 border border-[#D4AF37]/30 shadow-xs space-y-4">
-        <div className="text-center space-y-1">
-          <span className="text-[10px] font-bold tracking-widest text-[#D4AF37] uppercase">
-            Six Senior Travel Standards
-          </span>
-          <h2 className="text-lg md:text-xl font-serif italic font-bold text-[#2C3E50]">
-            老友记 · 适老名仕六重保障体系
-          </h2>
-          <p className="text-xs text-stone-500 max-w-md mx-auto">
-            专为50-75岁退休学者、高知老友量身打造，省心、舒缓、尊严、体面
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[
-            {
-              title: '纯玩零购物',
-              desc: '绝无任何隐形消费与进店，全心沉浸文化与慢步。',
-              icon: ShieldCheck,
-            },
-            {
-              title: '舒缓步数控制',
-              desc: '每日步数严格控制在4000-6000步，无陡峭台阶。',
-              icon: Footprints,
-            },
-            {
-              title: '随团医疗健康包',
-              desc: '每团随配急救箱，每日晨起/晚间监测血压血氧。',
-              icon: ActivityIcon,
-            },
-            {
-              title: '航空头等舱大巴',
-              desc: '2+1宽体座椅，前后间距超1米，平稳不颠簸。',
-              icon: Award,
-            },
-            {
-              title: '6-12人私享小团',
-              desc: '名仕精品拼小团，团友皆同道高知，节奏随心。',
-              icon: Users,
-            },
-            {
-              title: '家属安心联络',
-              desc: '老友管家每日向家属同步行程简报与精修相册。',
-              icon: UserCheck,
-            },
-          ].map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={idx}
-                className="bg-white/80 rounded-2xl p-3 border border-stone-200/80 shadow-2xs flex flex-col justify-between space-y-1.5"
-              >
-                <div className="w-8 h-8 rounded-xl bg-[#2C3E50]/10 text-[#2C3E50] flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-[#2C3E50]" />
-                </div>
-                <div>
-                  <h4 className="font-serif font-bold text-xs text-[#2C3E50]">{item.title}</h4>
-                  <p className="text-[11px] text-stone-500 leading-tight mt-0.5">{item.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+      {/* Placeholder for future expansion if needed */}
+      <div className="h-12"></div>
     </div>
   );
 };

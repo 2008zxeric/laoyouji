@@ -630,5 +630,27 @@ export type AdminTab =
   | 'tgo_apply'
   | 'activity_apply';
 
+export interface TripReminderNotice {
+  id: string;
+  orderId: string;
+  orderNo: string;
+  bizType: 'activity' | 'event';
+  title: string;
+  cover: string;
+  departureDate: string;
+  hoursLeft: number;
+  venueOrDestination: string;
+  contactGuideName: string;
+  contactGuidePhone: string;
+  gatheringTime: string;
+  gatheringPlace: string;
+  weatherTips: string;
+  medicationTips: string[];
+  healthReminders: string[];
+  packingChecklist: string[];
+  status: 'upcoming_24h' | 'starting_today' | 'reminded';
+  createdAt: string;
+}
+
 
 

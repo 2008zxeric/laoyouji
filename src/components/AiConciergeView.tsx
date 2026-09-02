@@ -952,6 +952,20 @@ export const AiConciergeView: React.FC = () => {
                 <>
                   <div className="absolute w-36 h-36 rounded-full bg-amber-400/20 animate-ping"></div>
                   <div className="absolute w-28 h-28 rounded-full bg-amber-500/30 animate-pulse"></div>
+                  
+                  {/* Waveform animation */}
+                  <div className="absolute flex items-center justify-center gap-1 mt-32">
+                      {[...Array(6)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-1.5 bg-[#D4AF37] rounded-full animate-wave"
+                          style={{
+                            height: `${Math.random() * 20 + 10}px`,
+                            animationDelay: `${i * 0.1}s`,
+                          }}
+                        ></div>
+                      ))}
+                  </div>
                 </>
               )}
 

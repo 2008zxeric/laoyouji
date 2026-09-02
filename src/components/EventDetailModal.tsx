@@ -908,11 +908,14 @@ export const EventDetailModal: React.FC<EventDetailModalProps> = ({
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => openBooking('event', event)}
+                onClick={() => {
+                  onClose();
+                  openBooking('event', event);
+                }}
                 className="bg-[#2C3E50] hover:bg-[#1a252f] text-amber-100 px-6 py-3 rounded-2xl font-bold text-sm md:text-base shadow-md transition-all active:scale-95 flex items-center gap-1.5 border border-[#D4AF37]/30 cursor-pointer"
               >
                 <Users className="w-4 h-4 text-[#D4AF37]" />
-                <span>立即报名</span>
+                <span>组队报名</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>

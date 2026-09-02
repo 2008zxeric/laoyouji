@@ -135,7 +135,7 @@ export const ActivitiesView: React.FC = () => {
 
           <div>
             <h2 className="font-serif italic font-semibold text-xl md:text-2xl text-[#FAF9F6] leading-tight">
-              读万卷书 · 行万里路 · 遇知音老友
+              读万卷书 · 行万里路 · 遇知音同伴
             </h2>
             <p className="text-xs md:text-sm text-stone-300 mt-1 max-w-lg leading-relaxed">
               专为50-75岁知识分子定制：名师随团讲学，平缓慢步不催促，三餐精细无隐形消费。
@@ -144,7 +144,7 @@ export const ActivitiesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Month Filter Bar (适老月份快捷筛选器) */}
+      {/* Month Filter Bar (乐龄月份快捷筛选器) */}
       <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#EAE6DF] shadow-xs space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -309,7 +309,7 @@ export const ActivitiesView: React.FC = () => {
             >
               <option value="recommended">综合推荐</option>
               <option value="priceAsc">价格从低到高</option>
-              <option value="rating">老友评分最高</option>
+              <option value="rating">同伴评分最高</option>
             </select>
           </div>
         </div>

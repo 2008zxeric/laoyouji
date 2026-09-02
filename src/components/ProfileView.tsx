@@ -27,8 +27,14 @@ import {
   Edit3,
   Bot,
   Phone,
+  Bell,
+  BellRing,
+  Volume2,
+  CalendarCheck,
+  Check,
 } from 'lucide-react';
 import { HealthProfileModal } from './HealthProfileModal';
+import { TripReminderModal } from './TripReminderModal';
 
 export const ProfileView: React.FC = () => {
   const {
@@ -59,6 +65,14 @@ export const ProfileView: React.FC = () => {
     toggleCareMode,
     isLargeFont,
     setIsLargeFont,
+    isTripReminderEnabled,
+    toggleTripReminder,
+    tripReminderLeadHours,
+    setTripReminderLeadHours,
+    activeTripReminderNotice,
+    isTripReminderModalOpen,
+    setIsTripReminderModalOpen,
+    triggerTripReminderCheck,
   } = useApp();
 
   const [orderTab, setOrderTab] = useState<'all' | 'paid' | 'pending_pay' | 'completed' | 'refund'>('all');
@@ -146,6 +160,56 @@ export const ProfileView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 24-Hour Activity / Event Starting Reminder High-Visibility Active Banner */}
+      {isTripReminderEnabled && activeTripReminderNotice && (
+        <div className="bg-gradient-to-r from-[#2C3E50] via-[#1a252f] to-[#2C3E50] rounded-3xl p-4 md:p-5 border-2 border-amber-400/80 shadow-md text-white space-y-3 relative overflow-hidden animate-scaleUp">
+          <div className="absolute top-0 right-0 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="flex items-start justify-between relative z-10 gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="w-10 h-10 rounded-2xl bg-amber-500 text-stone-950 flex items-center justify-center font-bold shadow-xs shrink-0 animate-bounce">
+                <BellRing className="w-5 h-5 text-stone-950" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">
+                    🔔 24小时行前提醒
+                  </span>
+                  <span className="text-xs text-amber-300 font-bold">
+                    {activeTripReminderNotice.bizType === 'event' ? '赛事明日开赛' : '行程明日启程'}
+                  </span>
+                </div>
+                <h4 className="font-serif font-bold text-sm md:text-base text-[#FAF9F6] mt-0.5 line-clamp-1">
+                  {activeTripReminderNotice.title}
+                </h4>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsTripReminderModalOpen(true)}
+              className="bg-amber-400 hover:bg-amber-300 text-stone-950 text-xs font-black px-3.5 py-2 rounded-xl shadow-xs transition-transform active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              查看备忘凭据
+            </button>
+          </div>
+
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-xs text-stone-200 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="truncate">集合：{activeTripReminderNotice.gatheringTime}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="truncate">地点：{activeTripReminderNotice.gatheringPlace.split('（')[0]}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="truncate">管家：{activeTripReminderNotice.contactGuideName}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. Fast Actions Grid */}
       <div className="grid grid-cols-4 gap-2 text-center">
@@ -558,12 +622,12 @@ export const ProfileView: React.FC = () => {
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <div className="flex items-center space-x-2 text-[#2C3E50] font-serif font-bold text-base">
             <ShieldCheck className="w-5 h-5 text-amber-600" />
-            <span>全局设置 · 适老关怀模式</span>
+            <span>全局设置 · 适老关怀与智能提醒</span>
           </div>
-          <span className="text-xs text-stone-500 font-medium">无障碍设计规范</span>
+          <span className="text-xs text-stone-500 font-medium">无障碍与适老守护规范</span>
         </div>
 
-        {/* Main Care Mode Switch Card */}
+        {/* 5.1 Main Care Mode Switch Card */}
         <div
           onClick={toggleCareMode}
           className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between ${
@@ -603,6 +667,84 @@ export const ProfileView: React.FC = () => {
                 isCareMode ? 'translate-x-6' : 'translate-x-0'
               }`}
             ></div>
+          </div>
+        </div>
+
+        {/* 5.2 Activity Starting & Trip 24-Hour Reminder Switch Card (活动开赛/研学提醒) */}
+        <div
+          className={`p-4 rounded-2xl border-2 transition-all space-y-3 ${
+            isTripReminderEnabled
+              ? 'bg-gradient-to-br from-amber-50/90 via-orange-50/40 to-amber-50/90 border-amber-400 shadow-xs'
+              : 'bg-stone-50 border-stone-200'
+          }`}
+        >
+          <div
+            onClick={() => toggleTripReminder()}
+            className="flex items-center justify-between cursor-pointer"
+          >
+            <div className="space-y-1 pr-3">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-[#2C3E50] text-sm md:text-base flex items-center gap-1.5">
+                  <BellRing className={`w-4 h-4 ${isTripReminderEnabled ? 'text-amber-600 animate-bounce' : 'text-stone-400'}`} />
+                  <span>活动开赛 / 研学出团 24小时行前提醒</span>
+                </span>
+                <span
+                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                    isTripReminderEnabled
+                      ? 'bg-amber-500 text-stone-950 shadow-2xs'
+                      : 'bg-stone-200 text-stone-600'
+                  }`}
+                >
+                  {isTripReminderEnabled ? '已开启 · 24h前提醒' : '已关闭'}
+                </span>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                开启后，在已报名的活动或乐龄赛事<strong className="text-stone-900 font-bold">开始前24小时</strong>，通过页面内高亮 Toast、专属红点与行前备忘录提醒您集合地点、自备药品与管家电话，确保不遗漏重要行程。
+              </p>
+            </div>
+
+            {/* Toggle Button Graphic */}
+            <div
+              className={`w-14 h-8 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
+                isTripReminderEnabled ? 'bg-amber-500' : 'bg-stone-300'
+              }`}
+            >
+              <div
+                className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform ${
+                  isTripReminderEnabled ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              ></div>
+            </div>
+          </div>
+
+          {/* Reminder Feature Highlights & Quick Test Button */}
+          <div className="pt-2 border-t border-amber-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-stone-600">
+              <span className="inline-flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-stone-200 text-stone-700">
+                <Clock className="w-3 h-3 text-amber-600" />
+                <span>提前 24 小时推送</span>
+              </span>
+              <span className="inline-flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-stone-200 text-stone-700">
+                <span className="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                <span>页面红点 & 顶部 Toast 强提醒</span>
+              </span>
+              <span className="inline-flex items-center gap-1 bg-white/80 px-2 py-0.5 rounded-md border border-stone-200 text-stone-700">
+                <Pill className="w-3 h-3 text-emerald-600" />
+                <span>长辈随身药品清单备忘</span>
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                triggerTripReminderCheck(true, true);
+                setIsTripReminderModalOpen(true);
+              }}
+              className="bg-[#2C3E50] hover:bg-[#1a252f] text-amber-200 text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-transform active:scale-95 flex items-center justify-center gap-1.5 border border-[#D4AF37]/30 whitespace-nowrap cursor-pointer"
+            >
+              <Bell className="w-3.5 h-3.5 text-amber-400" />
+              <span>🛎️ 模拟测试 24小时行前提醒</span>
+            </button>
           </div>
         </div>
 
@@ -724,6 +866,12 @@ export const ProfileView: React.FC = () => {
       <HealthProfileModal
         isOpen={isHealthModalOpen}
         onClose={() => setIsHealthModalOpen(false)}
+      />
+
+      {/* 24-Hour Trip & Event Departure Reminder Modal */}
+      <TripReminderModal
+        isOpen={isTripReminderModalOpen}
+        onClose={() => setIsTripReminderModalOpen(false)}
       />
     </div>
   );

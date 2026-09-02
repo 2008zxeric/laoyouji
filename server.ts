@@ -1410,8 +1410,17 @@ app.post("/api/ai-tgo-match", async (req, res) => {
         });
 
         if (response.text) {
-          const parsed = JSON.parse(response.text);
-          return res.json({ success: true, ...parsed, source: "gemini" });
+          // Robust parsing: extract content within first { and last }
+          const text = response.text.trim();
+          const jsonStart = text.indexOf('{');
+          const jsonEnd = text.lastIndexOf('}');
+          
+          if (jsonStart !== -1 && jsonEnd !== -1) {
+            const cleanText = text.substring(jsonStart, jsonEnd + 1).replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            return res.json({ success: true, ...parsed, source: "gemini" });
+          }
+          throw new Error("No valid JSON found in response");
         }
       } catch (geminiErr) {
         console.warn("Gemini TGO Match failed, falling back:", geminiErr);
@@ -1470,8 +1479,14 @@ app.post("/api/ai-booking-helper", async (req, res) => {
         });
 
         if (response.text) {
-          const parsed = JSON.parse(response.text);
-          return res.json({ success: true, ...parsed, source: "gemini" });
+          try {
+            const cleanText = response.text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            return res.json({ success: true, ...parsed, source: "gemini" });
+          } catch (e) {
+            console.error("Booking Helper JSON parse failed:", e);
+            throw new Error("Invalid JSON structure");
+          }
         }
       } catch (geminiErr) {
         console.warn("Gemini booking helper failed, falling back:", geminiErr);

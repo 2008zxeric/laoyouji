@@ -19,10 +19,11 @@ import { PointsGuideModal } from './components/PointsGuideModal';
 import { InviteModal } from './components/InviteModal';
 import { ReviewModal } from './components/ReviewModal';
 import { GlobalAiConciergeModal } from './components/GlobalAiConciergeModal';
-import { TgoListModal } from './components/TgoListModal';
+import { CompanionPickerModal } from './components/CompanionPickerModal';
 import { TgoDetailModal } from './components/TgoDetailModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { FrontPreviewLayer } from './components/FrontPreviewLayer';
+import { TripReminderModal } from './components/TripReminderModal';
 
 const MainApp: React.FC = () => {
   const {
@@ -37,7 +38,11 @@ const MainApp: React.FC = () => {
     setSelectedEvent,
     selectedTgo,
     setSelectedTgo,
+    isTgoListOpen,
+    setIsTgoListOpen,
     toastMessage,
+    isTripReminderModalOpen,
+    setIsTripReminderModalOpen,
   } = useApp();
 
   // If in Web Admin Mode, render the full-featured Admin Dashboard
@@ -123,7 +128,6 @@ const MainApp: React.FC = () => {
         )}
 
         <FrontPreviewLayer />
-        <TgoListModal />
 
         {selectedTgo && (
           <TgoDetailModal
@@ -141,10 +145,22 @@ const MainApp: React.FC = () => {
         <InviteModal />
         <ReviewModal />
         <GlobalAiConciergeModal />
+        <CompanionPickerModal isOpen={isTgoListOpen} onClose={() => setIsTgoListOpen(false)} />
+        <TripReminderModal
+          isOpen={isTripReminderModalOpen}
+          onClose={() => setIsTripReminderModalOpen(false)}
+        />
 
         {/* Global Floating Toast */}
         {toastMessage && (
-          <div className="fixed top-16 left-1/2 -translate-x-1/2 z-70 bg-[#2C3E50]/95 backdrop-blur-md text-[#FAF9F6] px-4 py-2.5 rounded-2xl shadow-xl border border-[#D4AF37]/40 text-xs md:text-sm font-medium animate-fadeIn flex items-center gap-2 max-w-[90%] text-center">
+          <div
+            onClick={() => {
+              if (toastMessage.includes('开赛') || toastMessage.includes('行前') || toastMessage.includes('研学')) {
+                setIsTripReminderModalOpen(true);
+              }
+            }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-70 bg-[#2C3E50]/95 backdrop-blur-md text-[#FAF9F6] px-4 py-2.5 rounded-2xl shadow-xl border border-[#D4AF37]/40 text-xs md:text-sm font-medium animate-fadeIn flex items-center gap-2 max-w-[90%] text-center cursor-pointer active:scale-95 transition-transform"
+          >
             <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-ping"></span>
             <span>{toastMessage}</span>
           </div>

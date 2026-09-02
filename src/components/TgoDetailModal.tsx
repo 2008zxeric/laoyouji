@@ -39,6 +39,8 @@ export const TgoDetailModal: React.FC<{ tgo: TgoLike; onClose: () => void }> = (
     openBooking,
     showToast,
     userProfile,
+    setSelectedActivity,
+    setSelectedEvent,
   } = useApp();
   const avatars = useTgoAvatars();
   const [showPicker, setShowPicker] = useState(false);
@@ -70,8 +72,16 @@ export const TgoDetailModal: React.FC<{ tgo: TgoLike; onClose: () => void }> = (
           }),
         });
         if (res.ok) {
-          const data = await res.json();
-          if (isMounted) setAiMatchData(data);
+          const text = await res.text();
+          try {
+            const data = JSON.parse(text);
+            if (isMounted) setAiMatchData(data);
+          } catch (e) {
+            console.error("Failed to parse AI match response:", e);
+            throw new Error("Invalid JSON response");
+          }
+        } else {
+           throw new Error(`Server returned ${res.status}`);
         }
       } catch {
         if (isMounted) {
@@ -245,6 +255,16 @@ export const TgoDetailModal: React.FC<{ tgo: TgoLike; onClose: () => void }> = (
     return { hit, isEvent };
   };
 
+  const handleViewScheduleItem = (item: { type?: string; activityId?: string; title?: string; date?: string }) => {
+    const { hit, isEvent } = findActivityMetadata(item);
+    onClose();
+    if (isEvent) {
+      setSelectedEvent(hit as TournamentEvent);
+    } else {
+      setSelectedActivity(hit as Activity);
+    }
+  };
+
   const handleBookScheduleItem = (item: { type?: string; activityId?: string; title?: string; date?: string }) => {
     const { hit, isEvent } = findActivityMetadata(item);
     onClose();
@@ -257,7 +277,7 @@ export const TgoDetailModal: React.FC<{ tgo: TgoLike; onClose: () => void }> = (
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
-      <div className="bg-[#FAF9F6] rounded-3xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl border border-[#EAE6DF] overflow-hidden relative">
+      <div className="bg-[#FAF9F6] rounded-t-3xl sm:rounded-3xl w-full max-w-2xl h-full sm:h-[92vh] flex flex-col shadow-2xl border border-[#EAE6DF] overflow-hidden relative">
         {/* 顶栏 */}
         <div className="sticky top-0 bg-[#2C3E50] text-[#FAF9F6] px-5 py-3.5 flex items-center justify-between border-b border-[#D4AF37]/30 z-20 shadow-sm">
           <div className="flex items-center gap-2">
@@ -480,11 +500,18 @@ export const TgoDetailModal: React.FC<{ tgo: TgoLike; onClose: () => void }> = (
 
                     <div className="flex items-center justify-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-200 shrink-0">
                       <button
+                        onClick={() => handleViewScheduleItem(c)}
+                        className="px-3 py-2 rounded-xl bg-white hover:bg-stone-100 text-[#2C3E50] border border-stone-200 font-bold text-xs shadow-2xs transition-all active:scale-95 cursor-pointer flex items-center gap-1"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>研学详情</span>
+                      </button>
+                      <button
                         onClick={() => handleBookScheduleItem(c)}
                         className="px-4 py-2 rounded-xl bg-[#2C3E50] hover:bg-[#1a252f] text-[#D4AF37] font-bold text-xs shadow-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1"
                       >
                         <CreditCard className="w-3.5 h-3.5" />
-                        <span>立即预约报名</span>
+                        <span>立即预约</span>
                       </button>
                     </div>
                   </div>
