@@ -23,6 +23,8 @@ import {
   DictItem,
   HealthProfile,
   TripReminderNotice,
+  CheckinSpot,
+  ActivityCheckinRecord,
 } from '../types';
 import type { SiteInfo } from '../api/gateway';
 import {
@@ -274,6 +276,11 @@ interface AppContextType {
   setIsTripReminderModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   triggerTripReminderCheck: (forceToast?: boolean, forceSimulate?: boolean) => TripReminderNotice | null;
   dismissTripReminder: () => void;
+
+  // Activity Check-in & Map Stamp (研学与文旅活动线下定点打卡签到)
+  activityCheckins: ActivityCheckinRecord[];
+  doActivitySpotCheckin: (spot: CheckinSpot, activityTitle: string, reflection?: string) => { success: boolean; pointsEarned: number; message: string };
+  isSpotCheckedIn: (spotId: string) => boolean;
 
   // Front Preview Layer
   previewTarget: { activity?: Activity; event?: TournamentEvent } | null;
@@ -567,10 +574,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // User Profile
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const defaultHealthProfile: HealthProfile = {
+      systolicBp: 128,
+      diastolicBp: 82,
+      restingHeartRate: 72,
+      fastingBloodSugar: 5.6,
+      bloodOxygen: 98,
+      height: 172,
+      weight: 68,
+      bmi: 23.0,
+      lastCheckupDate: '2026-08-25',
+      syncToAiConcierge: true,
+      aiHealthAdvice: '血压及心率平稳可控。AI管家在规划行程时已启用适老节奏保护：限制日行步数在5,000步内，上午游览推迟至早餐服药后半小时，避开陡长台阶，严选中医低盐少油养生药膳，午间保障2小时静卧午休。',
+      bloodPressureStatus: 'controlled_hypertension',
+      heartCondition: 'normal',
+      mobilityLevel: 'gentle_walker',
+      altitudeSensitivity: 'sensitive',
+      chronicConditions: ['高血压 (平稳控制)'],
+      allergies: ['海鲜/甲壳类'],
+      dailyMedications: ['降压药 (每日晨起1次)', '硝酸甘油 / 速效救心丸 (随身应急)'],
+      maxDailyStepsComfort: 5000,
+      emergencyContactName: '赵晓琳',
+      emergencyContactPhone: '139 1888 9966',
+      emergencyContactRelation: '女儿',
+      specialDietary: '低盐少油、少糖清淡，不食重辣与海鲜',
+      medicalNotes: '平时晨起活动半小时，午后需小憩30分钟；随身常备温水杯与降压药。',
+      lastUpdated: '2026-08-25',
+      isDeclared: true,
+    };
+
     const saved = localStorage.getItem('lyj_user_profile');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed.healthProfile) {
+          // Merge defaults for new physical exam metrics
+          parsed.healthProfile = {
+            ...defaultHealthProfile,
+            ...parsed.healthProfile,
+            systolicBp: parsed.healthProfile.systolicBp ?? 128,
+            diastolicBp: parsed.healthProfile.diastolicBp ?? 82,
+            restingHeartRate: parsed.healthProfile.restingHeartRate ?? 72,
+            fastingBloodSugar: parsed.healthProfile.fastingBloodSugar ?? 5.6,
+            bloodOxygen: parsed.healthProfile.bloodOxygen ?? 98,
+            height: parsed.healthProfile.height ?? 172,
+            weight: parsed.healthProfile.weight ?? 68,
+            bmi: parsed.healthProfile.bmi ?? 23.0,
+            lastCheckupDate: parsed.healthProfile.lastCheckupDate ?? '2026-08-25',
+            syncToAiConcierge: parsed.healthProfile.syncToAiConcierge ?? true,
+          };
+        } else {
+          parsed.healthProfile = defaultHealthProfile;
+        }
+        return parsed;
       } catch (e) {
         console.error(e);
       }
@@ -588,23 +644,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       idCard: '31010419550812****',
       emergencyContactName: '赵晓琳 (女儿)',
       emergencyContactPhone: '139 1888 9966',
-      healthProfile: {
-        bloodPressureStatus: 'controlled_hypertension',
-        heartCondition: 'normal',
-        mobilityLevel: 'gentle_walker',
-        altitudeSensitivity: 'sensitive',
-        chronicConditions: ['高血压 (平稳控制)'],
-        allergies: ['海鲜/甲壳类'],
-        dailyMedications: ['降压药 (每日晨起1次)', '硝酸甘油 / 速效救心丸 (随身应急)'],
-        maxDailyStepsComfort: 5000,
-        emergencyContactName: '赵晓琳',
-        emergencyContactPhone: '139 1888 9966',
-        emergencyContactRelation: '女儿',
-        specialDietary: '低盐少油、少糖清淡，不食重辣与海鲜',
-        medicalNotes: '平时晨起活动半小时，午后需小憩30分钟；随身常备温水杯与降压药。',
-        lastUpdated: '2026-08-20',
-        isDeclared: true,
-      },
+      healthProfile: defaultHealthProfile,
     };
   });
 
@@ -716,6 +756,101 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       message: isStreak7
         ? `恭喜您连续坚持 7 天！获得 5 分 + 额外 20 分大礼包（共 +25 积分）！`
         : `签到成功！赠送 +${reward} 积分，已连续坚持 ${newStreak} 天！`,
+    };
+  };
+
+  // Activity Location Check-ins (研学与文旅活动定点打卡签到)
+  const [activityCheckins, setActivityCheckins] = useState<ActivityCheckinRecord[]>(() => {
+    const saved = localStorage.getItem('lyj_activity_checkins');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {}
+    }
+    return [
+      {
+        id: 'chk-init-1',
+        spotId: 'spot-act-1-1',
+        activityId: 'act-1',
+        activityTitle: '江南文脉·苏州园林美学与昆曲私享名师慢游 5日',
+        spotName: '拙政园 · 三十六鸳鸯馆',
+        timestamp: '2026-09-08 09:20',
+        pointsEarned: 50,
+        reflection: '晨光穿透蓝色花窗，水面荷风微拂，钱教授的讲解让人豁然开朗，江南造园当真是诗情画意！',
+        verifiedByTgo: true,
+      },
+    ];
+  });
+
+  const isSpotCheckedIn = (spotId: string) => {
+    return activityCheckins.some((r) => r.spotId === spotId);
+  };
+
+  const doActivitySpotCheckin = (spot: CheckinSpot, activityTitle: string, reflection?: string) => {
+    if (isSpotCheckedIn(spot.id)) {
+      return {
+        success: false,
+        pointsEarned: 0,
+        message: `您已在「${spot.name}」打卡，纪念印章已点亮！`,
+      };
+    }
+
+    const points = spot.rewardPoints || 50;
+    const newRecord: ActivityCheckinRecord = {
+      id: `chk-${Date.now()}`,
+      spotId: spot.id,
+      activityId: spot.activityId,
+      activityTitle: activityTitle,
+      spotName: spot.name,
+      timestamp: new Date().toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      pointsEarned: points,
+      reflection: reflection || spot.culturalQuote || '乐龄研学，漫步文脉',
+      locationCoordinates: { lat: spot.lat, lng: spot.lng },
+      verifiedByTgo: true,
+    };
+
+    const nextList = [newRecord, ...activityCheckins];
+    setActivityCheckins(nextList);
+    try {
+      localStorage.setItem('lyj_activity_checkins', JSON.stringify(nextList));
+    } catch {}
+
+    // Update user points
+    const newPoints = userProfile.points + points;
+    setUserProfile((prev) => ({ ...prev, points: newPoints }));
+
+    // Add Points log
+    setPointsLogs((prev) => [
+      {
+        id: `log-${Date.now()}`,
+        title: `研学打卡奖励：${spot.name}「${spot.stampBadge}」`,
+        amount: points,
+        type: 'earn',
+        date: new Date().toISOString().split('T')[0],
+        balanceAfter: newPoints,
+        sourceRule: 'activity_checkin',
+      },
+      ...prev,
+    ]);
+
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      origin: { y: 0.5 },
+    });
+
+    showToast(`📍 签到打卡成功！获得「${spot.stampBadge}」并奖励 +${points} 积分`);
+
+    return {
+      success: true,
+      pointsEarned: points,
+      message: `恭喜您成功在「${spot.name}」完成线下研学签到打卡！荣获【${spot.stampBadge}】荣誉印章，积分 +${points}！`,
     };
   };
 
@@ -1762,6 +1897,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         closeFrontPreview,
         siteInfo,
         updateSiteInfo,
+        activityCheckins,
+        doActivitySpotCheckin,
+        isSpotCheckedIn,
       }}
     >
       {children}

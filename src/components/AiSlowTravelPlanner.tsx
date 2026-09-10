@@ -30,6 +30,12 @@ import {
   Compass,
   Smile,
   Users,
+  HeartPulse,
+  Activity as ActivityIcon,
+  Bot,
+  Wind,
+  Droplets,
+  Edit3,
 } from 'lucide-react';
 
 interface DayPlan {
@@ -118,6 +124,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
     setSelectedActivity,
     isCareMode,
     isLargeFont,
+    setIsHealthModalOpen,
   } = useApp();
 
   // Input States
@@ -132,11 +139,29 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
     '乐龄五星慢住',
   ]);
   const [companion, setCompanion] = useState<string>('夫妻二人出行');
-  const [healthNotes, setHealthNotes] = useState<string>(
-    userProfile.healthProfile?.chronicDiseases?.length
-      ? `长辈有${userProfile.healthProfile.chronicDiseases.join('、')}，要求少盐低糖软烂餐饮，少爬台阶，保障充分午休`
-      : '轻度高血压，偏好少油少盐软烂餐饮，少爬陡坡台阶，每日安排充分午睡'
-  );
+  const [healthNotes, setHealthNotes] = useState<string>(() => {
+    const hp = userProfile.healthProfile;
+    if (hp && hp.syncToAiConcierge !== false) {
+      const bpStr = hp.systolicBp ? `血压${hp.systolicBp}/${hp.diastolicBp}mmHg` : '轻度高血压';
+      const hrStr = hp.restingHeartRate ? `静息心率${hp.restingHeartRate}次/分` : '';
+      const stepsStr = hp.maxDailyStepsComfort ? `步数上限${hp.maxDailyStepsComfort}步` : '日行4000步';
+      return `【健康指标已同步】：${bpStr}，${hrStr}，${stepsStr}。要求避开陡坡长梯，保障充足静卧午睡，配低盐软烂营养餐`;
+    }
+    return '轻度高血压，偏好少油少盐软烂餐饮，少爬陡坡台阶，每日安排充分午睡';
+  });
+
+  // Automatically update health notes when health profile is edited
+  useEffect(() => {
+    const hp = userProfile.healthProfile;
+    if (hp && hp.syncToAiConcierge !== false) {
+      const bpStr = hp.systolicBp ? `血压${hp.systolicBp}/${hp.diastolicBp}mmHg` : '轻度高血压';
+      const hrStr = hp.restingHeartRate ? `静息心率${hp.restingHeartRate}次/分` : '';
+      const stepsStr = hp.maxDailyStepsComfort ? `步数上限${hp.maxDailyStepsComfort}步` : '日行4000步';
+      setHealthNotes(
+        `【健康指标已同步】：${bpStr}，${hrStr}，${stepsStr}。要求避开陡坡长梯，保障充足静卧午睡，配低盐软烂营养餐`
+      );
+    }
+  }, [userProfile.healthProfile]);
 
   // Generation & View States
   const [loading, setLoading] = useState<boolean>(false);
@@ -237,10 +262,12 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
           themes: selectedThemes,
           companion,
           healthNeeds: overridePrompt ? `${healthNotes} (特别调整要求：${overridePrompt})` : healthNotes,
+          healthProfile: userProfile.healthProfile,
           userProfile: {
             name: userProfile.name || '赵教授',
             level: currentTier.name || '博雅·知音',
             points: userProfile.points || 3680,
+            healthProfile: userProfile.healthProfile,
           },
         }),
       });
@@ -597,6 +624,65 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
             </div>
           </div>
 
+          {/* Health Profile Biometrics Sync Banner */}
+          <div className="bg-gradient-to-br from-white to-[#FAF9F6] rounded-2xl p-3.5 border border-emerald-200/80 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <HeartPulse className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-stone-800 font-serif">
+                    已同步个人健康体检指标
+                  </span>
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold flex items-center gap-0.5">
+                    <CheckCircle2 className="w-2.5 h-2.5" /> 适老化考量护航中
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsHealthModalOpen(true)}
+                className="text-[11px] font-bold text-[#D4AF37] hover:text-[#b8843e] flex items-center gap-1 cursor-pointer"
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>修改体检指标</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              <div className="bg-white/80 p-2 rounded-xl border border-stone-200/60">
+                <span className="text-stone-400 block text-[10px]">体检血压</span>
+                <span className="font-bold text-[#2C3E50]">
+                  {userProfile.healthProfile?.systolicBp || 128} / {userProfile.healthProfile?.diastolicBp || 82} mmHg
+                </span>
+              </div>
+              <div className="bg-white/80 p-2 rounded-xl border border-stone-200/60">
+                <span className="text-stone-400 block text-[10px]">静息心率</span>
+                <span className="font-bold text-rose-600">
+                  {userProfile.healthProfile?.restingHeartRate || 72} 次/分
+                </span>
+              </div>
+              <div className="bg-white/80 p-2 rounded-xl border border-stone-200/60">
+                <span className="text-stone-400 block text-[10px]">空腹血糖/血氧</span>
+                <span className="font-bold text-amber-700">
+                  {userProfile.healthProfile?.fastingBloodSugar || 5.6} mmol / {userProfile.healthProfile?.bloodOxygen || 98}%
+                </span>
+              </div>
+              <div className="bg-white/80 p-2 rounded-xl border border-stone-200/60">
+                <span className="text-stone-400 block text-[10px]">单日舒适步数</span>
+                <span className="font-bold text-emerald-700">
+                  上限 {userProfile.healthProfile?.maxDailyStepsComfort || 5000} 步
+                </span>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-stone-500">
+              💡 行程引擎已启动长辈定制：上午核心导赏避开人流台阶，每日中午安排 1.5~2 小时静卧午睡，正餐提供少盐低糖软烂分餐。
+            </p>
+          </div>
+
           {/* Row 4: Companion & Health Advice Quick input */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
             <div className="space-y-1.5">
@@ -619,7 +705,7 @@ export const AiSlowTravelPlanner: React.FC<AiSlowTravelPlannerProps> = ({
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-stone-700 flex items-center gap-1">
                 <Pill className="w-3.5 h-3.5 text-rose-500" />
-                <span>乐龄健康与餐饮嘱托</span>
+                <span>乐龄健康与适老考量嘱托</span>
               </label>
               <input
                 type="text"

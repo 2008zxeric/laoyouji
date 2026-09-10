@@ -375,6 +375,20 @@ export interface PastEventItem {
 export interface HealthProfile {
   id?: string;
   memberId?: string;
+  // 基础体检指标 (Physical Exam Biometric Indicators)
+  systolicBp?: number; // 收缩压 (高压) mmHg，如 128
+  diastolicBp?: number; // 舒张压 (低压) mmHg，如 82
+  restingHeartRate?: number; // 静息心率 bpm，如 72
+  fastingBloodSugar?: number; // 空腹血糖 mmol/L，如 5.6
+  bloodOxygen?: number; // 静息血氧饱和度 SpO2 %，如 98
+  height?: number; // 身高 cm，如 172
+  weight?: number; // 体重 kg，如 68
+  bmi?: number; // 体质指数 BMI
+  lastCheckupDate?: string; // 最近体检/测量日期，如 '2026-08-25'
+  syncToAiConcierge?: boolean; // 是否已同步至 AI 伴游管家进行适老化考量
+  aiHealthAdvice?: string; // AI 基于体检指标为长辈生成的行程适老化考量建议
+
+  // 基础分类状况
   bloodPressureStatus: 'normal' | 'controlled_hypertension' | 'high' | 'unknown'; // 血压状况
   heartCondition: 'normal' | 'arrhythmia' | 'coronary_stent' | 'severe' | 'none'; // 心血管状况
   mobilityLevel: 'independent' | 'gentle_walker' | 'cane_assisted' | 'wheelchair'; // 关节与行走活动度
@@ -630,6 +644,26 @@ export type AdminTab =
   | 'tgo_apply'
   | 'activity_apply';
 
+export interface AchievementBadge {
+  id: string;
+  category: 'study' | 'review' | 'honor';
+  categoryLabel: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  iconName: string;
+  accentColor: string;
+  unlocked: boolean;
+  unlockedAt?: string;
+  currentCount: number;
+  targetCount: number;
+  unit: string;
+  rewardPoints: number;
+  privilegeDesc: string;
+  actionText?: string;
+  actionType?: 'activity' | 'review' | 'community' | 'invite';
+}
+
 export interface TripReminderNotice {
   id: string;
   orderId: string;
@@ -650,6 +684,42 @@ export interface TripReminderNotice {
   packingChecklist: string[];
   status: 'upcoming_24h' | 'starting_today' | 'reminded';
   createdAt: string;
+}
+
+// 线下参与研学与文旅活动签到打卡打点
+export interface CheckinSpot {
+  id: string;
+  activityId: string;
+  day: number;
+  name: string;
+  theme: string;
+  locationName: string;
+  address: string;
+  lat: number; // 纬度 (e.g. 31.3256)
+  lng: number; // 经度 (e.g. 120.6308)
+  category: 'heritage' | 'museum' | 'tea_culture' | 'hotel' | 'nature';
+  categoryLabel: string;
+  icon: string;
+  rewardPoints: number; // 签到奖励积分, 如 30 或 50
+  culturalQuote: string; // 签到文化寄语
+  seniorTip: string; // 适老慢行提示
+  stampBadge: string; // 打卡纪念数字印章名称，如 "姑苏园林雅仕印"
+  photoUrl?: string;
+  isUnlocked?: boolean;
+}
+
+export interface ActivityCheckinRecord {
+  id: string;
+  spotId: string;
+  activityId: string;
+  activityTitle: string;
+  spotName: string;
+  timestamp: string; // 签到时间
+  pointsEarned: number;
+  reflection?: string; // 老友随笔感言
+  locationCoordinates?: { lat: number; lng: number };
+  photo?: string;
+  verifiedByTgo?: boolean; // TGO 领队盖章确认
 }
 
 

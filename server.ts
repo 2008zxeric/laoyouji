@@ -321,21 +321,51 @@ app.post("/api/ai-concierge", async (req, res) => {
         title: "博雅·知音 会员特权与积分总览",
       };
     }
-    // Case 5: 健康 / 步数 / 血压
-    else if (lower.includes("健康") || lower.includes("药") || lower.includes("血压") || lower.includes("步数") || lower.includes("体能")) {
-      reply = `【小老友·乐龄出行健康与体能适配建议】
-尊敬的${userContext.name || "赵教授"}，小老友已结合您的健康档案（轻度高血压、舒适步数4000步左右）为您评估：
+    // Case 5: 健康 / 步数 / 血压 / 心率 / 血糖 / 体检 / 指标
+    else if (
+      lower.includes("健康") ||
+      lower.includes("药") ||
+      lower.includes("血压") ||
+      lower.includes("心率") ||
+      lower.includes("血糖") ||
+      lower.includes("步数") ||
+      lower.includes("体能") ||
+      lower.includes("体检") ||
+      lower.includes("指标")
+    ) {
+      const hp = userContext.healthProfile || {};
+      const sysBp = hp.systolicBp || 128;
+      const diaBp = hp.diastolicBp || 82;
+      const hr = hp.restingHeartRate || 72;
+      const sugar = hp.fastingBloodSugar || 5.6;
+      const oxygen = hp.bloodOxygen || 98;
+      const maxSteps = hp.maxDailyStepsComfort || 5000;
 
-1. **路线推荐**：强烈推荐《江南文脉·苏州园林美学》（全平缓石板路，每日3,500步）与《青城问道》（索道直达，配中医养生），避开高海拔与陡坡。
-2. **随车保障**：每条路线均配备 AED 应急箱、血氧仪、电子血压计与持证随团医护人员；
-3. **行前常备**：请将日常降压降糖药物按“出游天数 + 3天”备齐随身携带；
-4. **大巴舒展**：陆地头等舱大巴每行驶 1.5 小时即安排服务区休息舒展。`;
+      reply = `【小老友·乐龄健康体检指标与适老慢游评估】
+尊敬的${userContext.name || "赵教授"}，小老友已调取您在个人中心同步的**最新体检生理指标**：
 
-      spokenText = `赵教授，根据您的健康状况，小老友建议选择苏州园林或青城山等平缓路线，每日步数在三千五百步左右。我们全程配备随团医护人员与急救包，请您安心出游。`;
+🩺 **核心指标同步速查**：
+• **血压状况**：${sysBp} / ${diaBp} mmHg（${sysBp <= 135 ? "平稳可控，维持适度缓步" : "晨峰需关注，避开长梯爬坡"}）
+• **静息心率**：${hr} 次/分（建议漫步速度控制在每分钟 50~55 步）
+• **空腹血糖/血氧**：血糖 ${sugar} mmol/L · 血氧 ${oxygen}%（含氧充沛，适游中低海拔）
+• **舒适步数上限**：全天严格控制在 **${maxSteps.toLocaleString()} 步以内**
+
+🛡️ **AI 为您自动启动的 4 项适老化考量**：
+1. **避让晨峰与险陡**：上午核心景点推迟至早餐服药半小时后启程，全程安排平缓石板路或观光车；
+2. **限速茶歇节奏**：每漫步 25 分钟，专属管家均安排回廊软椅茶歇静心品茗；
+3. **午休静卧保障**：每天 13:00~15:00 安排 1.5~2 小时五星养生酒店静卧午睡，恢复长辈精力；
+4. **少盐软烂老字号分餐**：正餐优选易消化咀嚼的低盐低糖当季药膳；
+5. **随团医护与AED**：随车标配持证急救护士、便携式 AED 除颤仪与折叠手杖坐凳。`;
+
+      spokenText = `赵教授，根据您个人档案中的血压${sysBp}和心率${hr}等体检指标，小老友已为您制定了适老慢游保障。全程避开陡坡台阶，步数控制在${maxSteps}步以内，并配备随团医护与五星午休，请您放心慢游。`;
 
       intent = {
         type: "health_inquiry",
-        title: "乐龄慢行健康评估与安全保障",
+        title: "个人体检指标适老化慢游综合评估",
+        actionButton: {
+          text: "一键定制适老慢游行程",
+          actionType: "switch_to_planner",
+        },
       };
     }
     // Default Fallback
@@ -470,6 +500,7 @@ app.post("/api/ai-travel-planner", async (req, res) => {
       themes = ["学者同行", "茶道雅集", "适老五星"],
       companion = "夫妻老友结伴",
       healthNeeds = "轻度高血压，偏好低盐软烂餐饮，少爬陡阶",
+      healthProfile = {},
       userProfile = {},
     } = req.body;
 
@@ -483,6 +514,19 @@ app.post("/api/ai-travel-planner", async (req, res) => {
         ? "深度探古 (日均5000-6500步，名师深入讲解，少量缓坡，配轻便防滑登山杖)"
         : "闲适慢品 (日均3500-5000步，平缓石板路，避开高峰，随车医护巡测)";
 
+    const effectiveHp = healthProfile?.systolicBp ? healthProfile : (userProfile.healthProfile || {});
+    const biometricGuidance = effectiveHp.systolicBp
+      ? `
+【长辈个人体检真实生理指标与适老定制约束】：
+- 血压状况：收缩压 ${effectiveHp.systolicBp} mmHg / 舒张压 ${effectiveHp.diastolicBp || 82} mmHg (${effectiveHp.systolicBp >= 140 ? '高血压波动期，游览推迟至早餐服药后半小时，全平路严禁快走与陡梯' : '处于平稳控制期，步伐宜缓，漫步观景'})
+- 静息心率：${effectiveHp.restingHeartRate || 72} 次/分 (漫步节奏锁定在每分钟50-55步，每走25分钟安排软椅品茗小憩)
+- 空腹血糖：${effectiveHp.fastingBloodSugar || 5.6} mmol/L (三餐定时开餐防低血糖，严选少油低盐低糖软烂分餐)
+- 静息血氧：${effectiveHp.bloodOxygen || 98}% (随车配备指夹式血氧仪定时巡测)
+- 舒适日步数上限：全天严格限制在 ${effectiveHp.maxDailyStepsComfort || 5000} 步以内
+- 常备自备药：${(effectiveHp.dailyMedications || []).join('、') || '降压药、硝酸甘油'}
+- 适老硬性指令：在生成的 elderPhilosophy、medicalAssurance，以及每天的 medicationTip 和 elderCare 中，必须精准体现根据该体检指标的具体照护方案！`
+      : `【健康关怀】：${healthNeeds}`;
+
     const systemInstruction = `
 你是由“老友记老好玩儿”老年文旅社区专为50~75岁长辈打造的首席【AI 乐龄慢游行程规划大师】“小老友”。
 你的职责是为长辈定制一份极致贴心、儒雅清爽、适老五星标准的【${durationDays}天${durationDays - 1}晚 个性化慢游研学行程】。
@@ -493,7 +537,7 @@ app.post("/api/ai-travel-planner", async (req, res) => {
 - 出游节奏：${paceDesc}
 - 偏好主题：${(themes || []).join("、")}
 - 同行人员：${companion}
-- 健康关怀：${healthNeeds}
+- 健康关怀与体检指标：${biometricGuidance}
 - 用户身份：${userProfile.name || "赵教授"}，${userProfile.level || "博雅·知音"}
 
 【乐龄慢游六大黄金铁律 (ELDERLY SLOW-TRAVEL PRINCIPLES)】：

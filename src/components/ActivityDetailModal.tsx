@@ -3,6 +3,7 @@ import { Activity, GroupType } from '../types';
 import { useApp } from '../context/AppContext';
 import { DEFAULT_TGO_PROFILE, DEFAULT_FEE_EXCLUDES, DEFAULT_BOOKING_NOTICES } from '../data/mockData';
 import { ActivityRouteMap } from './ActivityRouteMap';
+import { ActivityCheckinMap } from './ActivityCheckinMap';
 import {
   X,
   Heart,
@@ -55,7 +56,7 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
   // Selected Departure Date
   const [selectedDateIndex, setSelectedDateIndex] = useState<number>(0);
   // Active Tab within Detail Page
-  const [detailTab, setDetailTab] = useState<'itinerary' | 'route_map' | 'fees' | 'notices' | 'tgo_master' | 'reviews'>('itinerary');
+  const [detailTab, setDetailTab] = useState<'itinerary' | 'route_map' | 'checkin_map' | 'fees' | 'notices' | 'tgo_master' | 'reviews'>('itinerary');
 
   // AI Activity Senior QA States
   const [aiQuestion, setAiQuestion] = useState('');
@@ -654,6 +655,18 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               <span>路径地图</span>
             </button>
             <button
+              onClick={() => setDetailTab('checkin_map')}
+              className={`flex-1 min-w-[96px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-1 relative ${
+                detailTab === 'checkin_map'
+                  ? 'border-[#D4AF37] text-[#85660d] font-bold bg-amber-50/60'
+                  : 'border-transparent text-stone-700 hover:text-amber-800'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>签到打卡</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+            </button>
+            <button
               onClick={() => setDetailTab('fees')}
               className={`flex-1 min-w-[84px] py-3 text-center border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                 detailTab === 'fees'
@@ -705,6 +718,13 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               </div>
             )}
 
+            {/* TAB: CHECKIN MAP (研学文旅定点签到打卡地图) */}
+            {detailTab === 'checkin_map' && (
+              <div className="space-y-4">
+                <ActivityCheckinMap activity={activity} />
+              </div>
+            )}
+
             {/* TAB 1: ITINERARY (每日慢步行程) */}
             {detailTab === 'itinerary' && (
               <div className="space-y-5">
@@ -724,6 +744,36 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
                     </button>
                   </div>
                   <ActivityRouteMap activity={activity} />
+                </div>
+
+                {/* Quick Check-in Entry Card in Itinerary Tab */}
+                <div
+                  onClick={() => setDetailTab('checkin_map')}
+                  className="bg-gradient-to-r from-amber-500/10 via-[#FAF8F5] to-amber-100/40 rounded-2xl p-3.5 border border-[#D4AF37]/50 flex items-center justify-between gap-3 shadow-2xs hover:border-[#D4AF37] cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#D4AF37] to-amber-600 text-stone-950 flex items-center justify-center font-bold shadow-2xs shrink-0">
+                      <MapPin className="w-4 h-4 text-white" />
+                    </span>
+                    <div>
+                      <div className="font-serif font-bold text-xs md:text-sm text-[#2C3E50] flex items-center gap-1.5">
+                        <span>线下研学签到打卡地图已开启</span>
+                        <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] px-1.5 py-0.2 rounded font-sans font-bold">
+                          每站送50分
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-stone-600 mt-0.5">
+                        出行到达景点或雅舍后，可定点认证并收集专属研学印章。
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="shrink-0 bg-[#2C3E50] text-amber-200 hover:text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>去打卡</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 <div className="bg-[#FAF9F6] rounded-2xl p-3.5 border border-[#EAE6DF] text-xs text-stone-700 flex items-center justify-between shadow-2xs">
@@ -1135,6 +1185,23 @@ export const ActivityDetailModal: React.FC<ActivityDetailModalProps> = ({
               >
                 <Bot className="w-5 h-5 text-[#2C3E50]" />
                 <span className="mt-0.5 font-medium">管家答疑</span>
+              </button>
+              <button
+                onClick={() => {
+                  setDetailTab('checkin_map');
+                }}
+                className={`flex flex-col items-center text-[11px] cursor-pointer transition-colors ${
+                  detailTab === 'checkin_map'
+                    ? 'text-[#85660d] font-bold'
+                    : 'text-stone-600 hover:text-amber-800'
+                }`}
+                title="研学打卡"
+              >
+                <div className="relative">
+                  <MapPin className={`w-5 h-5 ${detailTab === 'checkin_map' ? 'text-[#D4AF37]' : ''}`} />
+                  <span className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-red-500"></span>
+                </div>
+                <span className="mt-0.5">打卡</span>
               </button>
               <button
                 onClick={() => toggleFavorite(activity.id)}

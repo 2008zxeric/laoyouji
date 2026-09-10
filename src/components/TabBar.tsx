@@ -19,7 +19,20 @@ export const TabBar: React.FC = () => {
     (o) => o.status === 'pending_pay' || o.status === 'paid'
   ).length;
 
-  const handleTabClick = (tabId: typeof activeTab) => {
+  type TabId = typeof activeTab | 'tgo';
+
+  interface NavTab {
+    id: TabId;
+    label: string;
+    sublabel: string;
+    icon: any;
+    highlight?: boolean;
+    badge?: string;
+    badgeCount?: number;
+    showReminderDot?: boolean;
+  }
+
+  const handleTabClick = (tabId: TabId) => {
     if (tabId === 'tgo') {
       setIsTgoListOpen(true);
       return;
@@ -30,33 +43,33 @@ export const TabBar: React.FC = () => {
     setActiveTab(tabId);
   };
 
-  const tabs = [
+  const tabs: NavTab[] = [
     {
-      id: 'home' as const,
+      id: 'home',
       label: '精选',
       sublabel: '首页',
       icon: Sparkles,
     },
     {
-      id: 'activities' as const,
+      id: 'activities',
       label: '找慢游',
       sublabel: '文旅研学',
       icon: Compass,
     },
     {
-      id: 'tgo' as const,
+      id: 'tgo',
       label: '找旅伴',
       sublabel: '名师管家',
       icon: Users,
     },
     {
-      id: 'events' as const,
+      id: 'events',
       label: '找赛事',
       sublabel: '竞技风采',
       icon: Trophy,
     },
     {
-      id: 'profile' as const,
+      id: 'profile',
       label: '我的',
       sublabel: '账户中心',
       icon: User,

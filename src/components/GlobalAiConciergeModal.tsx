@@ -27,7 +27,7 @@ import {
   Phone,
   Headphones,
 } from 'lucide-react';
-import { Activity, TournamentEvent } from '../types';
+import { VoiceWaveform } from './VoiceWaveform';
 
 interface ActionButtonDef {
   text: string;
@@ -396,8 +396,7 @@ export const GlobalAiConciergeModal: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-60 bg-black/70 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4 animate-fadeIn">
-      <div className="bg-[#FAF9F6] rounded-t-3xl sm:rounded-3xl w-full max-w-xl h-[88vh] sm:h-[82vh] overflow-hidden shadow-2xl flex flex-col border border-[#EAE6DF] relative">
+    <aside className="fixed bottom-24 right-4 z-60 w-full max-w-sm sm:max-w-md h-[70vh] max-h-[600px] flex flex-col shadow-2xl rounded-3xl border border-[#EAE6DF] overflow-hidden bg-[#FAF9F6] animate-fadeIn">
         {/* Header */}
         <div className="bg-[#2C3E50] text-[#FAF9F6] px-5 py-3.5 flex items-center justify-between shadow-md border-b border-[#D4AF37]/30 shrink-0">
           <div className="flex items-center space-x-3">
@@ -457,6 +456,37 @@ export const GlobalAiConciergeModal: React.FC = () => {
 
         {/* Message Stream */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FAF9F6]">
+          {/* 语音预判确认区 */}
+          {isListening && (
+            <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-2xl p-4 animate-fadeIn">
+              <p className="text-stone-700 text-sm italic">
+                正在聆听... {inputMessage ? `“${inputMessage}”` : '请开始说话...'}
+              </p>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => {
+                    if (inputMessage) handleSendMessage(inputMessage, true);
+                    setIsListening(false);
+                    if (recognitionRef.current) recognitionRef.current.stop();
+                  }}
+                  className="flex-1 py-1.5 bg-[#2C3E50] text-amber-50 text-xs font-bold rounded-lg cursor-pointer"
+                >
+                  确认发送
+                </button>
+                <button
+                  onClick={() => {
+                    setInputMessage('');
+                    setIsListening(false);
+                    if (recognitionRef.current) recognitionRef.current.stop();
+                  }}
+                  className="flex-1 py-1.5 bg-[#E4E0D9] text-[#5D666E] text-xs font-bold rounded-lg cursor-pointer"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          )}
+          
           {messages.map((msg) => {
             const isUser = msg.sender === 'user';
             return (
@@ -621,18 +651,21 @@ export const GlobalAiConciergeModal: React.FC = () => {
             className="flex items-center gap-2"
           >
             {/* Big Senior Mic Button */}
-            <button
-              type="button"
-              onClick={toggleVoiceInput}
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
-                isListening
-                  ? 'bg-rose-600 text-white animate-pulse shadow-lg scale-105'
-                  : 'bg-[#2C3E50] text-[#D4AF37] hover:bg-[#1a252f]'
-              }`}
-              title={isListening ? '正在录音中，点击发送' : '点击按住开始说出问题'}
-            >
-              {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleVoiceInput}
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
+                  isListening
+                    ? 'bg-rose-600 text-white animate-pulse shadow-lg scale-105'
+                    : 'bg-[#2C3E50] text-[#D4AF37] hover:bg-[#1a252f]'
+                }`}
+                title={isListening ? '正在录音中，点击发送' : '点击按住开始说出问题'}
+              >
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+              <VoiceWaveform isListening={isListening} />
+            </div>
 
             <input
               type="text"
@@ -717,7 +750,7 @@ export const GlobalAiConciergeModal: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+      {/* Container closed correctly now */}
+    </aside>
   );
 };

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { MOCK_ARTICLES, MOCK_PAST_EVENTS } from '../data/mockData';
 import { Activity, TournamentEvent } from '../types';
+import { TodayRecommendationCard } from './TodayRecommendationCard';
 
 export const HomeView: React.FC = () => {
   const {
@@ -173,6 +174,9 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
+      {/* 1.5. Today's Recommendation (今日推荐) based on user preferences */}
+      <TodayRecommendationCard />
+
       {/* 2. Senior Dispatch & Daily Comfort Index */}
       <section className="bg-white rounded-2xl p-4 border border-[#E6E3DE] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
@@ -232,7 +236,7 @@ export const HomeView: React.FC = () => {
           </div>
         </div>
 
-        {/* New Interactive AI Companion Portal */}
+        {/* New Interactive AI Companion Portal 
         <div
           onClick={() => openGlobalAiWithPrompt ? openGlobalAiWithPrompt('请帮我规划一段舒缓的慢游行程') : setActiveTab('ai')}
           className="bg-[#2C3E50] rounded-3xl p-5 shadow-lg border border-[#D4AF37]/40 flex items-center gap-4 cursor-pointer hover:bg-[#1f2d3a] transition-all"
@@ -246,6 +250,7 @@ export const HomeView: React.FC = () => {
           </div>
           <ChevronRight className="w-6 h-6 text-[#D4AF37]" />
         </div>
+        */}
 
         {/* 2-Grid: Travel / Competition (Distinct, Elevated) */}
         <div className="grid grid-cols-2 gap-4">

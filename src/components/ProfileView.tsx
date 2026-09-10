@@ -32,9 +32,16 @@ import {
   Volume2,
   CalendarCheck,
   Check,
+  Gauge,
+  Wind,
+  Droplets,
+  Footprints,
+  Scale,
+  ArrowRight,
 } from 'lucide-react';
 import { HealthProfileModal } from './HealthProfileModal';
 import { TripReminderModal } from './TripReminderModal';
+import { AchievementBadgesSection } from './AchievementBadgesSection';
 
 export const ProfileView: React.FC = () => {
   const {
@@ -57,6 +64,7 @@ export const ProfileView: React.FC = () => {
     setIsPointsGuideOpen,
     setIsInviteModalOpen,
     openGlobalAiWithPrompt,
+    setActiveTab,
     isHealthModalOpen,
     setIsHealthModalOpen,
     setViewMode,
@@ -278,6 +286,9 @@ export const ProfileView: React.FC = () => {
         </div>
       </div>
 
+      {/* 2.5. Senior Achievement Badges (名仕成就勋章展示区) */}
+      <AchievementBadgesSection />
+
       {/* 3. My Orders Section */}
       <div className="bg-white rounded-3xl p-4 md:p-5 border border-[#EAE6DF] shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -426,89 +437,254 @@ export const ProfileView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Senior Health Profile (健康档案申报与安全守护) */}
-      <div className="bg-white rounded-3xl p-4 md:p-5 border border-[#EAE6DF] shadow-xs space-y-3.5">
-        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center">
-              <HeartPulse className="w-4 h-4" />
+      {/* 4. Senior Health Profile & Biometrics (乐龄健康档案与体检指标) */}
+      <div className="bg-white rounded-3xl p-4 md:p-5 border border-[#EAE6DF] shadow-xs space-y-4">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-stone-100 pb-3">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shadow-2xs">
+              <HeartPulse className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-[#2C3E50] text-base flex items-center gap-2">
-                <span>乐龄健康档案</span>
-                {userProfile.healthProfile?.isDeclared ? (
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
-                    <CheckCircle2 className="w-3 h-3" /> 已申报守护中
+              <div className="flex items-center gap-2">
+                <h3 className="font-serif font-bold text-[#2C3E50] text-base md:text-lg">
+                  乐龄健康档案与体检指标
+                </h3>
+                {userProfile.healthProfile?.syncToAiConcierge ? (
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border border-emerald-300/60">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <Bot className="w-3 h-3 text-emerald-700" />
+                    <span>AI 管家实时同步中</span>
                   </span>
                 ) : (
                   <span className="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                    未申报
+                    未同步AI
                   </span>
                 )}
-              </h3>
+              </div>
               <p className="text-[11px] text-stone-500">
-                出游强度安全智能预警 · 随团医护与管家定制照护依据
+                记录血压、心率等基础体检指标 · 自动同步 AI 管家为研学慢游提供适老化考量
               </p>
             </div>
           </div>
 
-          <button
-            onClick={() => setIsHealthModalOpen(true)}
-            className="flex items-center gap-1 text-xs font-bold text-[#2C3E50] bg-stone-100 hover:bg-[#FAF9F6] border border-stone-200 px-3 py-1.5 rounded-xl transition-all active:scale-95"
-          >
-            <Edit3 className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>{userProfile.healthProfile?.isDeclared ? '修改档案' : '去申报'}</span>
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => setIsHealthModalOpen(true)}
+              className="flex items-center gap-1 text-xs font-bold text-[#2C3E50] bg-[#FAF9F6] hover:bg-stone-100 border border-[#EAE6DF] hover:border-stone-300 px-3 py-1.5 rounded-xl transition-all active:scale-95 shadow-2xs cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>{userProfile.healthProfile?.isDeclared ? '录入/修改体检指标' : '立即申报'}</span>
+            </button>
+          </div>
         </div>
 
         {userProfile.healthProfile?.isDeclared ? (
-          <div className="space-y-3">
-            {/* Vital Summary Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="bg-[#FAF9F6] p-2.5 rounded-xl border border-[#EAE6DF] space-y-0.5">
-                <span className="text-[10px] text-stone-400 block">舒适日行步数</span>
-                <span className="font-bold text-[#2C3E50] text-sm font-serif">
-                  约 {userProfile.healthProfile.maxDailyStepsComfort.toLocaleString()} 步
+          <div className="space-y-4">
+            {/* 4 Core Biometric Metric Cards (血压、心率、血糖、血氧) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {/* 1. Blood Pressure */}
+              <div className="bg-gradient-to-br from-white to-[#FAF9F6] p-3 rounded-2xl border border-rose-100/90 shadow-2xs space-y-1 relative overflow-hidden">
+                <div className="flex items-center justify-between text-stone-500 text-[10px]">
+                  <span className="flex items-center gap-1 font-semibold text-stone-600">
+                    <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
+                    <span>血压状况</span>
+                  </span>
+                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] px-1.5 py-0.2 rounded font-bold">
+                    {userProfile.healthProfile.systolicBp && userProfile.healthProfile.systolicBp < 120
+                      ? '理想'
+                      : userProfile.healthProfile.systolicBp && userProfile.healthProfile.systolicBp <= 139
+                      ? '平稳'
+                      : '需关注'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg md:text-xl font-bold font-serif text-[#2C3E50]">
+                    {userProfile.healthProfile.systolicBp || 128} / {userProfile.healthProfile.diastolicBp || 82}
+                  </span>
+                  <span className="text-[10px] text-stone-400">mmHg</span>
+                </div>
+                <p className="text-[10px] text-stone-400">收缩压 / 舒张压</p>
+              </div>
+
+              {/* 2. Resting Heart Rate */}
+              <div className="bg-gradient-to-br from-white to-[#FAF9F6] p-3 rounded-2xl border border-rose-100/90 shadow-2xs space-y-1 relative overflow-hidden">
+                <div className="flex items-center justify-between text-stone-500 text-[10px]">
+                  <span className="flex items-center gap-1 font-semibold text-stone-600">
+                    <ActivityIcon className="w-3.5 h-3.5 text-rose-600" />
+                    <span>静息心率</span>
+                  </span>
+                  <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] px-1.5 py-0.2 rounded font-bold">
+                    适中
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg md:text-xl font-bold font-serif text-[#2C3E50]">
+                    {userProfile.healthProfile.restingHeartRate || 72}
+                  </span>
+                  <span className="text-[10px] text-stone-400">次/分</span>
+                </div>
+                <p className="text-[10px] text-stone-400">适宜步频: 55步/分</p>
+              </div>
+
+              {/* 3. Fasting Blood Sugar */}
+              <div className="bg-gradient-to-br from-white to-[#FAF9F6] p-3 rounded-2xl border border-amber-100/90 shadow-2xs space-y-1 relative overflow-hidden">
+                <div className="flex items-center justify-between text-stone-500 text-[10px]">
+                  <span className="flex items-center gap-1 font-semibold text-stone-600">
+                    <Droplets className="w-3.5 h-3.5 text-amber-500" />
+                    <span>空腹血糖</span>
+                  </span>
+                  <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[9px] px-1.5 py-0.2 rounded font-bold">
+                    标准达标
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg md:text-xl font-bold font-serif text-[#2C3E50]">
+                    {userProfile.healthProfile.fastingBloodSugar || 5.6}
+                  </span>
+                  <span className="text-[10px] text-stone-400">mmol/L</span>
+                </div>
+                <p className="text-[10px] text-stone-400">分餐低盐低糖</p>
+              </div>
+
+              {/* 4. Blood Oxygen */}
+              <div className="bg-gradient-to-br from-white to-[#FAF9F6] p-3 rounded-2xl border border-teal-100/90 shadow-2xs space-y-1 relative overflow-hidden">
+                <div className="flex items-center justify-between text-stone-500 text-[10px]">
+                  <span className="flex items-center gap-1 font-semibold text-stone-600">
+                    <Wind className="w-3.5 h-3.5 text-cyan-600" />
+                    <span>静息血氧</span>
+                  </span>
+                  <span className="bg-teal-50 text-teal-800 border border-teal-200 text-[9px] px-1.5 py-0.2 rounded font-bold">
+                    充沛
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg md:text-xl font-bold font-serif text-[#2C3E50]">
+                    {userProfile.healthProfile.bloodOxygen || 98}%
+                  </span>
+                  <span className="text-[10px] text-stone-400">SpO2</span>
+                </div>
+                <p className="text-[10px] text-stone-400">中低海拔漫游无忧</p>
+              </div>
+            </div>
+
+            {/* Supplementary Physical & Mobility Strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-[#FAF9F6] p-3 rounded-2xl border border-[#EAE6DF]">
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-stone-400 block">舒适日行步数上限</span>
+                <span className="font-bold text-amber-800 text-xs sm:text-sm font-serif">
+                  约 {userProfile.healthProfile.maxDailyStepsComfort?.toLocaleString() || 5000} 步
                 </span>
               </div>
-              <div className="bg-[#FAF9F6] p-2.5 rounded-xl border border-[#EAE6DF] space-y-0.5">
-                <span className="text-[10px] text-stone-400 block">常规血压状况</span>
-                <span className="font-bold text-emerald-700">
-                  {userProfile.healthProfile.bloodPressureStatus === 'normal'
-                    ? '正常'
-                    : userProfile.healthProfile.bloodPressureStatus === 'controlled_hypertension'
-                    ? '高血压(平稳)'
-                    : '偏高波动'}
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-stone-400 block">体质指数 (BMI)</span>
+                <span className="font-bold text-[#2C3E50] text-xs sm:text-sm">
+                  {userProfile.healthProfile.bmi || 23.0} (身高 {userProfile.healthProfile.height || 172}cm · {userProfile.healthProfile.weight || 68}kg)
                 </span>
               </div>
-              <div className="bg-[#FAF9F6] p-2.5 rounded-xl border border-[#EAE6DF] space-y-0.5">
+              <div className="space-y-0.5">
                 <span className="text-[10px] text-stone-400 block">关节与步态</span>
-                <span className="font-bold text-[#2C3E50]">
+                <span className="font-bold text-[#2C3E50] text-xs sm:text-sm">
                   {userProfile.healthProfile.mobilityLevel === 'independent'
                     ? '步履轻健'
                     : userProfile.healthProfile.mobilityLevel === 'gentle_walker'
-                    ? '平缓慢行'
+                    ? '平缓慢行 (少台阶)'
                     : userProfile.healthProfile.mobilityLevel === 'cane_assisted'
                     ? '手杖辅助'
                     : '无障碍'}
                 </span>
               </div>
-              <div className="bg-[#FAF9F6] p-2.5 rounded-xl border border-[#EAE6DF] space-y-0.5">
-                <span className="text-[10px] text-stone-400 block">高原适应</span>
-                <span className="font-bold text-amber-700">
-                  {userProfile.healthProfile.altitudeSensitivity === 'normal'
-                    ? '耐受良好'
-                    : userProfile.healthProfile.altitudeSensitivity === 'sensitive'
-                    ? '敏感需配氧'
-                    : '禁入高原'}
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-stone-400 block">最近体检测量日期</span>
+                <span className="font-bold text-stone-600 text-xs sm:text-sm">
+                  {userProfile.healthProfile.lastCheckupDate || userProfile.healthProfile.lastUpdated || '2026-08-25'}
                 </span>
               </div>
             </div>
 
-            {/* Chronic tags and Meds */}
-            <div className="bg-[#FAF9F6] rounded-2xl p-3 border border-[#EAE6DF] text-xs space-y-2">
+            {/* AI Concierge Age-Friendly Adaptations Box */}
+            <div className="bg-gradient-to-br from-[#2C3E50] via-[#243342] to-[#1a252f] rounded-2xl p-4 text-amber-50 border border-amber-400/40 shadow-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-amber-300/20 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-xl bg-[#D4AF37] text-stone-900 flex items-center justify-center font-bold shadow-xs">
+                    <Bot className="w-4 h-4 text-stone-900" />
+                  </div>
+                  <div>
+                    <h4 className="font-serif font-bold text-sm text-[#FAF9F6] flex items-center gap-2">
+                      <span>AI 伴游管家 · 适老化行程考量守护</span>
+                      <span className="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full border border-emerald-400/30">
+                        智能同步中
+                      </span>
+                    </h4>
+                  </div>
+                </div>
+                <span className="text-[10px] text-amber-200/70 hidden sm:inline">
+                  根据长辈真实体征定制
+                </span>
+              </div>
+
+              {/* 4 Adaptation Points */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-stone-200">
+                <div className="bg-black/25 rounded-xl p-2.5 border border-amber-300/15 flex items-start gap-2">
+                  <span className="text-rose-400 font-bold shrink-0">① 血压晨峰避让：</span>
+                  <span>
+                    基于血压 {userProfile.healthProfile.systolicBp || 128}/{userProfile.healthProfile.diastolicBp || 82} mmHg，游览推迟至早餐服药后半小时，避开 &gt;15°陡坡。
+                  </span>
+                </div>
+                <div className="bg-black/25 rounded-xl p-2.5 border border-amber-300/15 flex items-start gap-2">
+                  <span className="text-amber-300 font-bold shrink-0">② 心率与步数管控：</span>
+                  <span>
+                    根据心率 {userProfile.healthProfile.restingHeartRate || 72} 次/分，单日步数上限锁定在 {userProfile.healthProfile.maxDailyStepsComfort || 5000} 步内，每走25分钟安排软椅茶歇。
+                  </span>
+                </div>
+                <div className="bg-black/25 rounded-xl p-2.5 border border-emerald-300/15 flex items-start gap-2">
+                  <span className="text-emerald-300 font-bold shrink-0">③ 膳食控糖控盐：</span>
+                  <span>
+                    根据空腹血糖 {userProfile.healthProfile.fastingBloodSugar || 5.6} mmol/L，随行正餐保底定时供应，严选少油少盐软烂老字号分餐。
+                  </span>
+                </div>
+                <div className="bg-black/25 rounded-xl p-2.5 border border-amber-300/15 flex items-start gap-2">
+                  <span className="text-cyan-300 font-bold shrink-0">④ 随团急救与AED：</span>
+                  <span>
+                    随车配备红十字急救箱、AED除颤仪、便携式血氧仪，午间严格预留 2 小时静卧休整。
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const hp = userProfile.healthProfile;
+                    const prompt = `请结合我个人中心同步的最新体检指标（收缩压 ${hp?.systolicBp || 128}mmHg / 舒张压 ${hp?.diastolicBp || 82}mmHg，静息心率 ${hp?.restingHeartRate || 72}次/分，空腹血糖 ${hp?.fastingBloodSugar || 5.6}mmol/L，血氧 ${hp?.bloodOxygen || 98}%，日行舒适步数 ${hp?.maxDailyStepsComfort || 5000}步），为我全面评估适合报名的慢游活动并给出适老化考量要点。`;
+                    openGlobalAiWithPrompt(prompt);
+                  }}
+                  className="flex-1 min-w-[160px] py-2 px-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/40 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                >
+                  <Bot className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  <span>咨询 AI 管家适老行程安排</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('ai');
+                    showToast('已进入 AI 慢游规划引擎，已为您带入体检指标与适老化考量！');
+                  }}
+                  className="flex-1 min-w-[160px] py-2 px-3 rounded-xl bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-stone-950" />
+                  <span>一键定制适老慢游行程</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-stone-950" />
+                </button>
+              </div>
+            </div>
+
+            {/* Chronic Conditions, Medications & Contacts */}
+            <div className="bg-[#FAF9F6] rounded-2xl p-3.5 border border-[#EAE6DF] text-xs space-y-2.5">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-stone-500 text-[11px]">基础情况：</span>
+                <span className="text-stone-500 text-[11px] font-medium">慢性病与过敏源：</span>
                 {userProfile.healthProfile.chronicConditions.map((cond, idx) => (
                   <span
                     key={idx}
@@ -534,35 +710,35 @@ export const ProfileView: React.FC = () => {
               )}
 
               {userProfile.healthProfile.emergencyContactName && (
-                <div className="flex items-center justify-between text-[11px] text-stone-500 border-t border-stone-200/60 pt-2">
+                <div className="flex flex-wrap items-center justify-between text-[11px] text-stone-500 border-t border-stone-200/60 pt-2 gap-1">
                   <span>
                     紧急联络：{userProfile.healthProfile.emergencyContactName} (
-                    {userProfile.healthProfile.emergencyContactRelation || '亲属'}) ·{' '}
+                    {userProfile.healthProfile.emergencyContactRelation || '亲友'}) ·{' '}
                     {userProfile.healthProfile.emergencyContactPhone}
                   </span>
                   <span className="text-[10px] text-stone-400">
-                    档案更新于：{userProfile.healthProfile.lastUpdated}
+                    建档/更新于：{userProfile.healthProfile.lastUpdated || '2026-08-25'}
                   </span>
                 </div>
               )}
             </div>
           </div>
         ) : (
-          <div className="bg-amber-50/70 rounded-2xl p-4 border border-amber-200 text-xs text-amber-900 space-y-2 flex items-center justify-between">
+          <div className="bg-amber-50/70 rounded-2xl p-4 border border-amber-200 text-xs text-amber-900 space-y-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
-              <div className="font-bold flex items-center gap-1">
-                <AlertCircle className="w-4 h-4 text-amber-600" />
-                <span>申报健康档案，开启活动强度智能安全卫士</span>
+              <div className="font-bold flex items-center gap-1.5 text-sm">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>申报健康档案与体检指标，开启 AI 适老化安全慢游守护</span>
               </div>
-              <p className="text-[11px] text-stone-600">
-                只需 1 分钟在线勾选血压、步态及高原敏感度，报名活动时智能核验防范风险。
+              <p className="text-[11px] text-stone-600 leading-relaxed">
+                只需 1 分钟在线录入血压、心率与步数偏好，AI 管家将在为您规划研学行程时自动避让险峰陡梯、控速控步并贴心配备药膳。
               </p>
             </div>
             <button
               onClick={() => setIsHealthModalOpen(true)}
-              className="bg-[#2C3E50] text-[#D4AF37] text-xs font-bold px-4 py-2 rounded-xl shrink-0 shadow-xs border border-[#D4AF37]/30 active:scale-95"
+              className="bg-[#2C3E50] text-[#D4AF37] text-xs font-bold px-4 py-2.5 rounded-xl shrink-0 shadow-xs border border-[#D4AF37]/30 active:scale-95 cursor-pointer"
             >
-              立即申报
+              立即录入指标
             </button>
           </div>
         )}
