@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { ActivityCard } from './ActivityCard';
 import { ActivityCalendarView } from './ActivityCalendarView';
 import { ActivityApplyModal } from './ActivityApplyModal';
+import { HikingChannelView } from './hiking/HikingChannelView';
 import {
   Search,
   Filter,
@@ -18,10 +19,21 @@ import {
   CalendarDays,
   Flame,
   X,
+  ChevronRight,
+  Mountain,
+  Award,
 } from 'lucide-react';
 
 export const ActivitiesView: React.FC = () => {
-  const { activities, setIsCheckinOpen, setIsPointsMallOpen, isCareMode } = useApp();
+  const {
+    activities,
+    setIsCheckinOpen,
+    setIsPointsMallOpen,
+    isCareMode,
+    activitySubChannel,
+    setActivitySubChannel,
+    userHikingProfile,
+  } = useApp();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -46,9 +58,10 @@ export const ActivitiesView: React.FC = () => {
     { id: '慢游雅居', label: '园林雅居慢游' },
     { id: '茶道文博', label: '茶道文博品鉴' },
     { id: '康养山海', label: '山海康养旅居' },
+    { id: '徒步', label: '老友徒步慢行' },
   ];
 
-  const destinations = ['all', '苏州', '敦煌', '武夷山', '青岛', '大理', '潮汕'];
+  const destinations = ['all', '苏州', '余姚/四明山', '宁波/东钱湖', '敦煌', '武夷山', '黄山', '青岛', '大理'];
 
   const filteredActivities = useMemo(() => {
     return activities
@@ -106,43 +119,114 @@ export const ActivitiesView: React.FC = () => {
   ]);
 
   return (
-    <div className="space-y-4 pb-12 animate-fadeIn">
-      {/* Hero Banner with Featured Master Tour in Artistic Flair Navy & Gold */}
-      <div className="relative rounded-3xl overflow-hidden shadow-sm bg-[#2C3E50] border border-[#EAE6DF]">
-        <img
-          src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80"
-          alt="Banner"
-          className="w-full h-48 md:h-64 object-cover opacity-65 mix-blend-luminosity"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#2C3E50] via-[#2C3E50]/70 to-transparent"></div>
+    <div className="space-y-5 pb-12 animate-fadeIn">
+      {/* 0. Sub-channel Navigation Bar (全部慢游 VS 老友徒步专区) */}
+      <div className="bg-white p-2 sm:p-2.5 rounded-2xl border border-stone-200/90 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-stone-200/70">
+          <button
+            onClick={() => setActivitySubChannel('all')}
+            className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-serif font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              activitySubChannel === 'all'
+                ? 'bg-[#2C3E50] text-[#FBF9F5] shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+            }`}
+          >
+            <Compass className="w-4 h-4 text-[#D4AF37]" />
+            <span>全部文旅慢游</span>
+          </button>
 
-        <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-between text-white">
-          <div className="flex items-center justify-between">
-            <span className="bg-[#D4AF37] text-stone-950 text-xs font-bold px-3 py-1 rounded-full shadow-2xs flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              金秋特选 · 慢调雅集
+          <button
+            onClick={() => setActivitySubChannel('hiking')}
+            className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-serif font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              activitySubChannel === 'hiking'
+                ? 'bg-[#2C3E50] text-[#FBF9F5] shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+            }`}
+          >
+            <Footprints className="w-4 h-4 text-emerald-600" />
+            <span>老友徒步子频道</span>
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-sans font-medium">
+              第{userHikingProfile.currentStage}段 · 护照
             </span>
+          </button>
+        </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsCheckinOpen(true)}
-                className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-amber-200 text-xs px-2.5 py-1 rounded-full border border-[#D4AF37]/30 transition-colors"
-              >
-                每日签到 +50分
-              </button>
+        <div className="flex items-center justify-end px-2 text-xs text-stone-500">
+          <span className="hidden md:inline-block">适老安全保障 · 专属五段位荣誉</span>
+        </div>
+      </div>
+
+      {/* Render Hiking Sub-channel View if active */}
+      {activitySubChannel === 'hiking' ? (
+        <HikingChannelView />
+      ) : (
+        <>
+          {/* Hero Banner with Featured Master Tour in Artistic Flair Navy & Gold */}
+          <div className="relative rounded-3xl overflow-hidden shadow-sm bg-[#2C3E50] border border-[#EAE6DF]">
+            <img
+              src="https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80"
+              alt="Banner"
+              className="w-full h-48 md:h-64 object-cover opacity-65 mix-blend-luminosity"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#2C3E50] via-[#2C3E50]/70 to-transparent"></div>
+
+            <div className="absolute inset-0 p-5 md:p-6 flex flex-col justify-between text-white">
+              <div className="flex items-center justify-between">
+                <span className="bg-[#D4AF37] text-stone-950 text-xs font-bold px-3 py-1 rounded-full shadow-2xs flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  金秋特选 · 慢调雅集
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsCheckinOpen(true)}
+                    className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-amber-200 text-xs px-2.5 py-1 rounded-full border border-[#D4AF37]/30 transition-colors"
+                  >
+                    每日签到 +50分
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="font-serif italic font-semibold text-xl md:text-2xl text-[#FAF9F6] leading-tight">
+                  读万卷书 · 行万里路 · 遇知音同伴
+                </h2>
+                <p className="text-xs md:text-sm text-stone-300 mt-1 max-w-lg leading-relaxed">
+                  专为50-75岁知识分子定制：名师随团讲学，平缓慢步不催促，三餐精细无隐形消费。
+                </p>
+              </div>
             </div>
           </div>
 
-          <div>
-            <h2 className="font-serif italic font-semibold text-xl md:text-2xl text-[#FAF9F6] leading-tight">
-              读万卷书 · 行万里路 · 遇知音同伴
-            </h2>
-            <p className="text-xs md:text-sm text-stone-300 mt-1 max-w-lg leading-relaxed">
-              专为50-75岁知识分子定制：名师随团讲学，平缓慢步不催促，三餐精细无隐形消费。
-            </p>
+          {/* New Hiking Sub-channel Entrance Feature Card */}
+          <div
+            onClick={() => setActivitySubChannel('hiking')}
+            className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50/60 to-amber-50/70 border border-emerald-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                <Footprints className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-emerald-700 text-white font-serif font-bold px-2 py-0.5 rounded-full">
+                    新增子频道
+                  </span>
+                  <h4 className="font-serif font-bold text-stone-900 text-base group-hover:text-emerald-800 transition-colors">
+                    老友徒步 · 银发慢行专区
+                  </h4>
+                </div>
+                <p className="text-xs text-stone-600 mt-1">
+                  50步/分节奏控速 · 德国避震双杖免借 · 随团急救护士与AED · 适老五段位成长与烫金护照印迹墙
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-serif font-bold text-emerald-800 shrink-0 bg-white/80 px-3.5 py-2 rounded-xl border border-emerald-200/60 shadow-2xs group-hover:bg-emerald-700 group-hover:text-white transition-colors">
+              <span>立即进入徒步子频道</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </div>
           </div>
-        </div>
-      </div>
 
       {/* Month Filter Bar (乐龄月份快捷筛选器) */}
       <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#EAE6DF] shadow-xs space-y-2.5">
@@ -279,6 +363,23 @@ export const ActivitiesView: React.FC = () => {
           ))}
         </div>
 
+        {selectedCategory === '徒步' && (
+          <div className="bg-emerald-50 border border-emerald-200/90 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs animate-fadeIn">
+            <div className="flex items-center gap-2 text-emerald-800">
+              <Footprints className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                正在浏览老友徒步路线。建议切换至专属【老友徒步子频道】，解锁五段位体系、个人护照与荣誉印迹墙！
+              </span>
+            </div>
+            <button
+              onClick={() => setActivitySubChannel('hiking')}
+              className="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg font-serif font-bold text-xs shrink-0 cursor-pointer transition-colors shadow-2xs self-end sm:self-auto"
+            >
+              进入徒步子频道 →
+            </button>
+          </div>
+        )}
+
         {/* Sub-Filters (Destinations & Sort) */}
         <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs text-stone-600 flex-wrap gap-2">
           {/* Destination Selector */}
@@ -390,6 +491,8 @@ export const ActivitiesView: React.FC = () => {
           isOpen={isApplyModalOpen}
           onClose={() => setIsApplyModalOpen(false)}
         />
+      )}
+        </>
       )}
     </div>
   );

@@ -535,6 +535,17 @@ export const DEFAULT_DICT_ITEMS: DictItem[] = [
     isDefault: true,
     description: '天然草本温泉、森林氧吧、道医调理',
   },
+  {
+    id: 'dict_ac_5',
+    code: 'hiking',
+    name: '徒步',
+    categoryCode: 'activity_categories',
+    sort: 5,
+    status: 'active',
+    color: 'emerald',
+    isDefault: true,
+    description: '老友徒步、银发慢行丈量山海、五段位印记成长专区',
+  },
 
   // 4. 适老化保障服务项 (Senior Care Services)
   {

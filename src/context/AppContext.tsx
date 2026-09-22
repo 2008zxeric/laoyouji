@@ -25,7 +25,14 @@ import {
   TripReminderNotice,
   CheckinSpot,
   ActivityCheckinRecord,
+  UserHikingProfile,
+  HikingStamp,
 } from '../types';
+import {
+  DEFAULT_USER_HIKING_PROFILE,
+  ALL_HIKING_STAMPS,
+  HIKING_STAGES,
+} from '../data/hikingData';
 import type { SiteInfo } from '../api/gateway';
 import {
   MOCK_ACTIVITIES,
@@ -70,6 +77,7 @@ export interface UserProfile {
   emergencyContactPhone: string;
   healthProfile?: HealthProfile;
   isLoggedIn?: boolean;
+  researchInterests?: string[]; // 研学兴趣标签 (用于 AI 个性化精准推荐)
 }
 
 interface AppContextType {
@@ -194,6 +202,7 @@ interface AppContextType {
   // User & State
   userProfile: UserProfile;
   setUserProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
+  updateResearchInterests: (interests: string[]) => void;
   currentTier: (typeof MEMBER_TIERS)[0];
   favorites: string[];
   toggleFavorite: (id: string) => void;
@@ -290,6 +299,16 @@ interface AppContextType {
   // Site Info Management
   siteInfo: SiteInfo;
   updateSiteInfo: (info: Partial<SiteInfo>) => Promise<void>;
+
+  // 徒步子频道专属状态与成长体系
+  activitySubChannel: 'all' | 'hiking';
+  setActivitySubChannel: React.Dispatch<React.SetStateAction<'all' | 'hiking'>>;
+  openHikingChannel: () => void;
+  userHikingProfile: UserHikingProfile;
+  setUserHikingProfile: React.Dispatch<React.SetStateAction<UserHikingProfile>>;
+  hikingStamps: HikingStamp[];
+  unlockHikingStamp: (stampId: string) => { success: boolean; stamp?: HikingStamp; upgradedStage?: number };
+  applyPhysicalPassport: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -572,6 +591,94 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // 徒步子频道专属状态与成长体系
+  const [activitySubChannel, setActivitySubChannel] = useState<'all' | 'hiking'>('all');
+
+  const openHikingChannel = () => {
+    setActiveTab('activities');
+    setActivitySubChannel('hiking');
+  };
+
+  const [userHikingProfile, setUserHikingProfile] = useState<UserHikingProfile>(() => {
+    try {
+      const saved = localStorage.getItem('lyj_user_hiking_profile');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return DEFAULT_USER_HIKING_PROFILE;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('lyj_user_hiking_profile', JSON.stringify(userHikingProfile));
+    } catch {}
+  }, [userHikingProfile]);
+
+  // Derived hiking stamps with unlock state from userHikingProfile
+  const hikingStamps: HikingStamp[] = ALL_HIKING_STAMPS.map((stamp) => ({
+    ...stamp,
+    isUnlocked: userHikingProfile.unlockedStampIds.includes(stamp.id),
+  }));
+
+  const unlockHikingStamp = (stampId: string) => {
+    const targetStamp = ALL_HIKING_STAMPS.find((s) => s.id === stampId);
+    if (!targetStamp) return { success: false };
+
+    if (userHikingProfile.unlockedStampIds.includes(stampId)) {
+      showToast(`您此前已点亮「${targetStamp.name}」荣誉印章！`);
+      return { success: true, stamp: targetStamp };
+    }
+
+    const nextUnlocked = [...userHikingProfile.unlockedStampIds, stampId];
+    // Check if new stage unlocked
+    let nextStage = userHikingProfile.currentStage;
+    if (nextUnlocked.length >= 7 && userHikingProfile.currentStage < 4) {
+      nextStage = 4;
+    } else if (nextUnlocked.length >= 5 && userHikingProfile.currentStage < 3) {
+      nextStage = 3;
+    } else if (nextUnlocked.length >= 3 && userHikingProfile.currentStage < 2) {
+      nextStage = 2;
+    }
+
+    const upgraded = nextStage > userHikingProfile.currentStage;
+    const stageInfo = HIKING_STAGES.find((s) => s.stage === nextStage);
+
+    setUserHikingProfile((prev) => ({
+      ...prev,
+      currentStage: nextStage,
+      stageName: stageInfo ? stageInfo.name : prev.stageName,
+      unlockedStampIds: nextUnlocked,
+      totalDistanceKm: Number((prev.totalDistanceKm + 4.5).toFixed(1)),
+      totalElevationM: prev.totalElevationM + 90,
+      completedTripsCount: prev.completedTripsCount + 1,
+    }));
+
+    confetti({
+      particleCount: 90,
+      spread: 70,
+      origin: { y: 0.5 },
+    });
+
+    if (upgraded) {
+      showToast(`🎉 恭喜晋升！您已荣升老友徒步【第${nextStage}段 · ${stageInfo?.name}】！`);
+    } else {
+      showToast(`✨ 恭喜点亮「${targetStamp.name}」！荣誉已盖印在您的徒步护照中！`);
+    }
+
+    return {
+      success: true,
+      stamp: targetStamp,
+      upgradedStage: upgraded ? nextStage : undefined,
+    };
+  };
+
+  const applyPhysicalPassport = () => {
+    setUserHikingProfile((prev) => ({
+      ...prev,
+      physicalPassportApplied: true,
+    }));
+    showToast('📜 实体《老友记乐龄徒步护照与徽章礼盒》申领申请已提交！TGO管家将在3个工作日内为您寄出。');
+  };
+
   // User Profile
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const defaultHealthProfile: HealthProfile = {
@@ -645,8 +752,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       emergencyContactName: '赵晓琳 (女儿)',
       emergencyContactPhone: '139 1888 9966',
       healthProfile: defaultHealthProfile,
+      researchInterests: ['古建文博', '园林美学', '非遗茶道', '名师同行', '道医养生'],
     };
   });
+
+  const updateResearchInterests = (interests: string[]) => {
+    setUserProfile((prev) => ({
+      ...prev,
+      researchInterests: interests,
+    }));
+    showToast('✨ 已更新研学偏好，AI 正在为您重新匹配文旅线路！');
+  };
 
   const updateHealthProfile = (hp: HealthProfile) => {
     setUserProfile((prev) => ({
@@ -1834,6 +1950,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         openGlobalAiWithPrompt,
         userProfile,
         setUserProfile,
+        updateResearchInterests,
         currentTier,
         favorites,
         toggleFavorite,
@@ -1900,6 +2017,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activityCheckins,
         doActivitySpotCheckin,
         isSpotCheckedIn,
+        activitySubChannel,
+        setActivitySubChannel,
+        openHikingChannel,
+        userHikingProfile,
+        setUserHikingProfile,
+        hikingStamps,
+        unlockHikingStamp,
+        applyPhysicalPassport,
       }}
     >
       {children}

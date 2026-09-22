@@ -5,12 +5,90 @@ export type ProductCarrier = '游轮' | '专列' | '自驾' | '赛事课堂' | '
 export type TimeLevel = 'L1' | 'L2' | 'L3' | 'L4'; // 第三维：L1(单日/半日周边) | L2(1-3晚短途) | L3(跨省长途4天+) | L4(旅居3天+/高端包机康养)
 export type BusinessTrack = 'track1_marketing' | 'track2_mainstream' | 'track3_premium'; // 三轨：轨道1营销引流 | 轨道2常规主力 | 轨道3高端定制特需
 
-export type ActivityCategory = '文化' | '体育' | '农业' | '健康' | '学者同行' | '慢游雅居' | '茶道文博' | '康养山海';
+export type ActivityCategory = '文化' | '体育' | '农业' | '健康' | '学者同行' | '慢游雅居' | '茶道文博' | '康养山海' | '徒步';
 export type ActivityForm = '观光' | '研学' | '旅居' | '社交' | '名校名师研学' | '慢调旅居' | '雅集沙龙' | '体验游' | '赛事游';
 export type ActivityLevel = '典雅舒适' | '尊享名仕' | '黑金私享';
 export type ActivityStatus = 'published' | 'draft' | 'offline' | 'expired';
 export type GroupType = 'large' | 'small'; // 大团体验 (20-30人) vs 拼小团·名仕精品团 (6-12人)
 export type TripCategoryType = 'local' | 'domestic' | 'outbound'; // 同城/本地 (1.0x, 最多抵30元) | 国内/跨省 (1.5x, 最多抵100元) | 出境/大额 (1.6x, 最多抵300元)
+
+// 徒步子频道专属类型与成长体系定义
+export type HikingDifficultyLevel = 'L1_flat' | 'L1_mountain' | 'L2_overnight' | 'L3_cross_provincial' | 'L4_sojourn';
+export type HikingStampCategory = 'route' | 'difficulty' | 'season' | 'behavior' | 'companion';
+
+export interface HikingStamp {
+  id: string;
+  name: string; // 印记名称，如 "平路初次印记", "同行印记", "爬坡印记", "四明山印记"
+  category: HikingStampCategory;
+  categoryName: string; // 路线印记 | 难度印记 | 赛季印记 | 行为印记 | 同行印记
+  description: string;
+  iconName: string; // Lucide icon name
+  badgeVisual: string; // 绿 · 平路章 | 蓝 · 爬坡章 | 橙 · 过夜章 | 红 · 跨省章 | 金 · 旅居章
+  levelRequired: 1 | 2 | 3 | 4 | 5;
+  isUnlocked: boolean;
+  unlockedAt?: string;
+  color: string;
+  highlightDesc?: string;
+  pointsBonus?: number;
+  requirement?: string;
+}
+
+export interface HikingRankStage {
+  stage: 1 | 2 | 3 | 4 | 5;
+  code: string; // 'L1', 'L1', 'L2', 'L3', 'L4'
+  name: string; // 起步者 | 行路者 | 翻山者 | 越岭者 | 远行者
+  badgeName: string; // 平路印记 | 爬坡印记 | 过夜印记 | 跨省印记 | 旅居印记
+  badgeVisual: string; // 绿 · 平路章 | 蓝 · 爬坡章 | 橙 · 过夜章 | 红 · 跨省章 | 金 · 旅居章
+  badgeIcon: string;
+  targetDescription: string;
+  description?: string;
+  unlockCondition: string;
+  stampsRequiredCount: number;
+  requiredStampsCount?: number;
+  upgradeCondition: string;
+  requiredCondition?: string;
+  privileges: string[];
+  colorHex: string;
+  bgClass: string;
+  borderClass: string;
+  textClass: string;
+  targetTrailType?: string;
+  difficultyLevel?: string;
+}
+
+export interface UserHikingProfile {
+  currentStage: 1 | 2 | 3 | 4 | 5;
+  stageName: string;
+  passportNumber: string;
+  completedTripsCount: number;
+  totalDistanceKm: number;
+  totalElevationM: number;
+  unlockedStampIds: string[];
+  nextStageGoal: string;
+  hasPhysicalPassport: boolean;
+  physicalPassportApplied?: boolean;
+}
+
+export interface HikingActivityMeta {
+  hikingLevel: HikingDifficultyLevel;
+  levelTag: string; // 'L1·起步者' | 'L1·行路者' | 'L2·翻山者' | 'L3·越岭者' | 'L4·远行者'
+  levelBadgeColor: 'green' | 'blue' | 'orange' | 'red' | 'gold';
+  distanceKm: number;
+  elevationGainM: number;
+  trailTerrain: string; // e.g. "平缓林荫木栈道" | "松针碎石缓坡" | "青石板步道"
+  targetPace: string; // e.g. "50步/分适老步频"
+  breakInterval: string; // e.g. "每25分钟软椅茶歇"
+  isOvernight: boolean;
+  gearProvided: string[]; // ['德国避震双杖', '记忆海绵加厚护膝', '防滑手套', '保温水壶', '折叠铝合金坐凳']
+  medicalEscort: string; // '随团三甲急救护士 + 便携AED + 电子血压随时测'
+  associatedStampId?: string;
+  associatedStampName?: string;
+  stageRequired?: number;
+  stageRequiredName?: string;
+  trailType?: string;
+  paceCadence?: string;
+  restIntervalMinutes?: number;
+}
 
 export interface TgoProfile {
   name: string;
@@ -159,6 +237,8 @@ export interface Activity {
   creator?: string; // 录入人/发布人，如 "周主管 (超级管理员)", "陆经理 (管理员)"
   createdAt?: string; // 录入时间，如 "2026-08-22"
   date?: string;
+  isHiking?: boolean;
+  hikingMeta?: HikingActivityMeta;
 }
 
 export type EventStatus = 'registration' | 'draft' | 'ongoing' | 'completed' | 'offline' | 'expired';

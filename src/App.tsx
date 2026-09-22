@@ -24,6 +24,7 @@ import { TgoDetailModal } from './components/TgoDetailModal';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { FrontPreviewLayer } from './components/FrontPreviewLayer';
 import { TripReminderModal } from './components/TripReminderModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const MainApp: React.FC = () => {
   const {
@@ -172,9 +173,11 @@ const MainApp: React.FC = () => {
 
 export default function App() {
   return (
-    <AppProvider>
-      <MainApp />
-    </AppProvider>
+    <ErrorBoundary fallbackTitle="老友记文旅社区正在稳定启动中">
+      <AppProvider>
+        <MainApp />
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
 

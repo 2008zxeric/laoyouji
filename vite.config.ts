@@ -9,8 +9,7 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss(), VitePWA({
       registerType: 'autoUpdate',
       devOptions: {
-        enabled: true,
-        type: 'module',
+        enabled: false,
       },
       manifest: {
         id: '/',

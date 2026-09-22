@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { MOCK_ARTICLES, MOCK_PAST_EVENTS } from '../data/mockData';
 import { Activity, TournamentEvent } from '../types';
-import { TodayRecommendationCard } from './TodayRecommendationCard';
+import { AiPersonalizedRecommendationSection } from './AiPersonalizedRecommendationSection';
 
 export const HomeView: React.FC = () => {
   const {
@@ -48,6 +48,7 @@ export const HomeView: React.FC = () => {
     userProfile,
     currentTier,
     openGlobalAiWithPrompt,
+    setActivitySubChannel,
   } = useApp();
 
   // Hero carousel active index
@@ -174,8 +175,8 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* 1.5. Today's Recommendation (今日推荐) based on user preferences */}
-      <TodayRecommendationCard />
+      {/* 1.5 AI Personalized Recommendation (AI个性化推荐 · 基于研学兴趣与历史参与智能研判) */}
+      <AiPersonalizedRecommendationSection />
 
       {/* 2. Senior Dispatch & Daily Comfort Index */}
       <section className="bg-white rounded-2xl p-4 border border-[#E6E3DE] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
@@ -214,12 +215,11 @@ export const HomeView: React.FC = () => {
         </div>
       </section>
 
-      {/* 2.5 NEW: 1+2 Layout (Find Companions + Slow Travel/Competition) */}
+      {/* 2.5 Layout: Find Companions + 3-Grid Channels (Slow Travel / Hiking / Competition) */}
       <section className="space-y-4">
         {/* Hero: Find Companions (Most Prominent) */}
         <div
           onClick={() => {
-            // Placeholder: Show selector modal
             setIsTgoListOpen(true);
           }}
           className="relative bg-gradient-to-br from-[#2C3E50] via-[#1f2d3a] to-[#2C3E50] rounded-3xl p-6 shadow-xl border border-[#D4AF37]/60 cursor-pointer overflow-hidden group"
@@ -236,48 +236,71 @@ export const HomeView: React.FC = () => {
           </div>
         </div>
 
-        {/* New Interactive AI Companion Portal 
-        <div
-          onClick={() => openGlobalAiWithPrompt ? openGlobalAiWithPrompt('请帮我规划一段舒缓的慢游行程') : setActiveTab('ai')}
-          className="bg-[#2C3E50] rounded-3xl p-5 shadow-lg border border-[#D4AF37]/40 flex items-center gap-4 cursor-pointer hover:bg-[#1f2d3a] transition-all"
-        >
-          <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/20 flex items-center justify-center shrink-0 animate-pulse">
-            <Bot className="w-7 h-7 text-[#D4AF37]" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-serif font-bold text-lg text-[#FAF9F6]">伴游 AI 管家</h3>
-            <p className="text-xs text-stone-300 mt-1">24小时语音陪伴，适老规划，即问即答</p>
-          </div>
-          <ChevronRight className="w-6 h-6 text-[#D4AF37]" />
-        </div>
-        */}
-
-        {/* 2-Grid: Travel / Competition (Distinct, Elevated) */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* 3-Grid: Slow Travel / Hiking Channel / Competition (Distinct, Elevated) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
           {/* Find Travel */}
           <div
-            onClick={() => setActiveTab('activities')}
-            className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-5 border border-[#D4AF37]/40 shadow-sm flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+            onClick={() => {
+              setActivitySubChannel('all');
+              setActiveTab('activities');
+            }}
+            className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-4.5 border border-[#D4AF37]/40 shadow-sm flex flex-col gap-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
-              <Compass className="w-6 h-6 text-[#2C3E50]" />
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center">
+                <Compass className="w-6 h-6 text-[#2C3E50]" />
+              </div>
+              <span className="text-[10px] bg-amber-100/90 text-amber-900 px-2 py-0.5 rounded-full font-serif font-semibold">
+                学者名师
+              </span>
             </div>
             <div>
-              <h3 className="font-serif font-bold text-lg text-[#2C3E50]">找慢游</h3>
-              <p className="text-xs text-stone-500 mt-1">发现适老文旅</p>
+              <h3 className="font-serif font-bold text-base text-[#2C3E50]">找慢游</h3>
+              <p className="text-xs text-stone-500 mt-0.5">园林茶道 · 慢调旅居</p>
             </div>
           </div>
+
+          {/* New Hiking Sub-channel Quick Entrance */}
+          <div
+            onClick={() => {
+              setActivitySubChannel('hiking');
+              setActiveTab('activities');
+            }}
+            className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white rounded-3xl p-4.5 border border-emerald-300 shadow-sm flex flex-col gap-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.98] relative overflow-hidden"
+          >
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                <Footprints className="w-6 h-6 text-emerald-800" />
+              </div>
+              <span className="text-[10px] bg-emerald-700 text-white px-2 py-0.5 rounded-full font-serif font-bold shadow-2xs">
+                新增子频道
+              </span>
+            </div>
+            <div>
+              <h3 className="font-serif font-bold text-base text-stone-900 flex items-center gap-1.5">
+                <span>老友徒步</span>
+                <span className="text-[11px] text-emerald-700 font-sans font-normal">五段位</span>
+              </h3>
+              <p className="text-xs text-stone-500 mt-0.5">慢行控速 · 烫金护照</p>
+            </div>
+          </div>
+
           {/* Find Competition */}
           <div
             onClick={() => setActiveTab('events')}
-            className="bg-gradient-to-br from-rose-50 to-white rounded-3xl p-5 border border-rose-200 shadow-sm flex flex-col gap-3 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+            className="bg-gradient-to-br from-rose-50 to-white rounded-3xl p-4.5 border border-rose-200 shadow-sm flex flex-col gap-2.5 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
           >
-            <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-rose-700" />
+            <div className="flex items-center justify-between">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-rose-700" />
+              </div>
+              <span className="text-[10px] bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-serif font-semibold">
+                赛事康养
+              </span>
             </div>
             <div>
-              <h3 className="font-serif font-bold text-lg text-[#2C3E50]">找赛事</h3>
-              <p className="text-xs text-stone-500 mt-1">一展竞技风采</p>
+              <h3 className="font-serif font-bold text-base text-[#2C3E50]">找赛事</h3>
+              <p className="text-xs text-stone-500 mt-0.5">掼蛋公开赛 · 温泉康养</p>
             </div>
           </div>
         </div>
